@@ -197,19 +197,19 @@
 
     <!-- 中工事 -->
     <section class="page" id="page-in">
-      <div class="warn">単価は<strong>仮の目安</strong>です（お客様提示用の単価のみ。原価は含まれません）。</div>
+      <div class="warn">単価は<strong>仮の目安</strong>です（すべて税込・お客様提示用。原価は含まれません）。</div>
       <div id="inCats"></div>
     </section>
 
     <!-- 外工事 -->
     <section class="page" id="page-out">
-      <div class="warn">単価は<strong>仮の目安</strong>です。外壁塗装は延床坪数（間取りタブ）から数量を仮入力します。</div>
+      <div class="warn">単価は<strong>仮の目安</strong>です（すべて税込）。</div>
       <div id="outCats"></div>
     </section>
 
     <!-- 発注物 -->
     <section class="page" id="page-order">
-      <div class="warn">単価は<strong>仮の目安</strong>です。材料・外注・自社工事部など、発注するものをここに入れます。</div>
+      <div class="warn">単価は<strong>仮の目安</strong>です（すべて税込）。材料・外注・自社工事部など、発注するものをここに入れます。</div>
       <div id="orderCats"></div>
     </section>
 
@@ -219,15 +219,9 @@
         <h2>見積内容</h2>
         <div id="sumWrap"></div>
         <div class="totals">
-          <div class="tr"><span>中工事 小計</span><span id="t_in">¥0</span></div>
-          <div class="tr"><span>外工事 小計</span><span id="t_out">¥0</span></div>
-          <div class="tr"><span>発注物 小計</span><span id="t_ord">¥0</span></div>
-          <div class="tr"><span>小計</span><span id="t_sub">¥0</span></div>
-          <div class="tr"><span>諸経費（<span id="t_ohRate"></span>%）</span><span id="t_oh">¥0</span></div>
-          <div class="tr"><span>値引き</span><span><input id="f_discount" type="number" inputmode="numeric" min="0" step="1000" placeholder="0"></span></div>
-          <div class="tr"><span>税抜合計</span><span id="t_pre">¥0</span></div>
-          <div class="tr"><span>消費税（<span id="t_taxRate"></span>%）</span><span id="t_tax">¥0</span></div>
+          <div class="tr"><span>値引き（任意）</span><span><input id="f_discount" type="number" inputmode="numeric" min="0" step="1000" placeholder="0"></span></div>
           <div class="tr big"><span>合計（税込）</span><span id="t_total">¥0</span></div>
+          <div class="hint">※ 単価はすべて税込です。</div>
         </div>
         <label class="f" style="margin-top:12px"><span>見積書に載せる備考</span><textarea id="f_note"></textarea></label>
         <div class="btn-row">
@@ -252,11 +246,10 @@
         <h2>単価について</h2>
         <div class="hint">
           このアプリの金額は、管理者が管理する<strong>原価マスター</strong>から作られた<strong>お客様提示用の単価</strong>です。原価は含まれていません。<br>
-          単価・諸経費率・消費税率はアプリ内では変更できません。直したい場合は管理者に連絡してください。
+          単価はすべて<strong>税込</strong>です。アプリ内では変更できません。直したい場合は管理者に連絡してください。
         </div>
         <table class="sum" style="margin-top:10px">
-          <tr><td>諸経費率</td><td class="r" id="s_ohView"></td></tr>
-          <tr><td>消費税率</td><td class="r" id="s_taxView"></td></tr>
+          <tr><td>単価</td><td class="r">税込</td></tr>
           <tr><td>単価データの生成日</td><td class="r" id="s_genView"></td></tr>
         </table>
       </div>
@@ -424,11 +417,10 @@
     if (outGroups.length) sections.push({ title: '外工事', groups: outGroups, sub: outSub });
     if (ordGroups.length) sections.push({ title: '発注物', groups: ordGroups, sub: ordSub });
     const sub = inSub + outSub + ordSub;
-    const oh = Math.round(sub * (Number(settings.overheadRate) || 0) / 100);
+    // 単価はすべて税込。合計 = 税込小計 − 値引き
     const discount = Number(draft.discount) || 0;
-    const pre = Math.max(0, sub + oh - discount);
-    const tax = Math.round(pre * (Number(settings.taxRate) || 0) / 100);
-    return { sections, inSub, outSub, ordSub, sub, oh, discount, pre, tax, total: pre + tax };
+    const total = Math.max(0, sub - discount);
+    return { sections, inSub, outSub, ordSub, sub, discount, total };
   }
   function roomLabel(room) {
     const rt = rtById(room.type); const tags = [];
@@ -611,15 +603,12 @@
   function refreshTotals() {
     const r = compute();
     $('#barTotal').textContent = yen(r.total);
-    $('#t_in').textContent = yen(r.inSub); $('#t_out').textContent = yen(r.outSub); $('#t_ord').textContent = yen(r.ordSub);
-    $('#t_sub').textContent = yen(r.sub); $('#t_oh').textContent = yen(r.oh); $('#t_ohRate').textContent = settings.overheadRate;
-    $('#t_pre').textContent = yen(r.pre); $('#t_tax').textContent = yen(r.tax); $('#t_taxRate').textContent = settings.taxRate;
     $('#t_total').textContent = yen(r.total);
     const w = $('#sumWrap');
     if (!r.sections.length) { w.innerHTML = '<div class="hint">まだ工事が選ばれていません。「中工事」「外工事」「発注」タブで項目をONにしてください。</div>'; return; }
     let h = '<table class="sum"><tr><th>工事内容</th><th class="r">数量</th><th class="r">金額</th></tr>';
     r.sections.forEach((s) => {
-      h += `<tr class="sec"><td colspan="2">${esc(s.title)}</td><td class="r">${yen(s.sub)}</td></tr>`;
+      h += `<tr class="sec"><td colspan="3">${esc(s.title)}</td></tr>`;
       s.groups.forEach((g) => {
         h += `<tr class="cat"><td colspan="3">${esc(g.name)}</td></tr>`;
         g.items.forEach((i) => {
@@ -666,18 +655,15 @@
       </div></div>
       <table><tr><th style="width:42%">工事内容</th><th>仕様・備考</th><th class="r">数量</th><th class="r">単価</th><th class="r">金額</th></tr>`;
     r.sections.forEach((sec) => {
-      h += `<tr class="sec"><td colspan="4">【${esc(sec.title)}】</td><td class="r">${yen(sec.sub)}</td></tr>`;
+      h += `<tr class="sec"><td colspan="5">【${esc(sec.title)}】</td></tr>`;
       sec.groups.forEach((g) => {
         h += `<tr class="cat"><td colspan="5">■ ${esc(g.name)}</td></tr>`;
         g.items.forEach((i) => { h += `<tr><td>${esc(i.name)}</td><td>${esc([i.grade, i.memo].filter(Boolean).join(' / '))}</td><td class="r">${fmtQty(i.qty)} ${esc(i.unit)}</td><td class="r">${yen(i.up)}</td><td class="r">${yen(i.amount)}</td></tr>`; });
       });
     });
-    h += `<tr class="tot"><td colspan="4" class="r">小計</td><td class="r">${yen(r.sub)}</td></tr>
-      <tr><td colspan="4" class="r">諸経費（${esc(settings.overheadRate)}%）</td><td class="r">${yen(r.oh)}</td></tr>`;
-    if (r.discount) h += `<tr><td colspan="4" class="r">値引き</td><td class="r">-${yen(r.discount)}</td></tr>`;
-    h += `<tr><td colspan="4" class="r">税抜合計</td><td class="r">${yen(r.pre)}</td></tr>
-      <tr><td colspan="4" class="r">消費税（${esc(settings.taxRate)}%）</td><td class="r">${yen(r.tax)}</td></tr>
-      <tr class="tot"><td colspan="4" class="r">合計（税込）</td><td class="r">${yen(r.total)}</td></tr></table>`;
+    if (r.discount) h += `<tr><td colspan="4" class="r">小計</td><td class="r">${yen(r.sub)}</td></tr><tr><td colspan="4" class="r">値引き</td><td class="r">-${yen(r.discount)}</td></tr>`;
+    h += `<tr class="tot"><td colspan="4" class="r">合計（税込）</td><td class="r">${yen(r.total)}</td></tr></table>
+      <div class="note">※ 金額はすべて税込です。</div>`;
     const note = $('#f_note').value;
     if (note) h += `<div class="note">${esc(note)}</div>`;
     if (s.memo) h += `<div class="note"><strong>現調メモ：</strong>${esc(s.memo)}</div>`;
@@ -692,12 +678,11 @@
     L.push(`【概算見積】${s.site || ''} ${s.cust ? s.cust + ' 様' : ''}`.trim());
     if (s.date) L.push(`現調日：${s.date}`);
     r.sections.forEach((sec) => {
-      L.push(`《${sec.title}》 ${yen(sec.sub)}`);
+      L.push(`《${sec.title}》`);
       sec.groups.forEach((g) => { L.push(`■${g.name}`); g.items.forEach((i) => L.push(`・${i.name}${i.grade ? '（' + i.grade + '）' : ''} ${fmtQty(i.qty)}${i.unit} ${yen(i.amount)}${i.memo ? '　※' + i.memo : ''}`)); });
     });
-    L.push(`小計 ${yen(r.sub)}`, `諸経費 ${yen(r.oh)}`);
-    if (r.discount) L.push(`値引き -${yen(r.discount)}`);
-    L.push(`消費税 ${yen(r.tax)}`, `合計（税込）${yen(r.total)}`, '', settings.company);
+    if (r.discount) L.push(`小計 ${yen(r.sub)}`, `値引き -${yen(r.discount)}`);
+    L.push(`合計（税込）${yen(r.total)}`, '※金額はすべて税込', '', settings.company);
     const t = L.join('\n');
     const done = () => toast('コピーしました');
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, () => fallbackCopy(t, done));
@@ -708,7 +693,6 @@
   // ---------- 設定タブ ----------
   function renderSettings() {
     $('#s_company').value = settings.company; $('#s_companyInfo').value = settings.companyInfo;
-    $('#s_ohView').textContent = settings.overheadRate + '%'; $('#s_taxView').textContent = settings.taxRate + '%';
     $('#s_genView').textContent = BASE.generatedAt || '-';
   }
 

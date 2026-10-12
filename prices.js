@@ -11,8 +11,8 @@ window.PRICE_TABLE = {
  "settings": {
   "company": "株式会社ワイケイアート",
   "companyInfo": "",
-  "overheadRate": 10.0,
-  "taxRate": 10.0,
+  "overheadRate": 0.0,
+  "taxRate": 0.0,
   "defaultNote": "※本書は現地調査時の概算見積です。詳細調査・商品選定後に正式見積をご提出します。\n※解体後に下地の腐食等が見つかった場合、別途費用が発生することがあります。"
  },
  "items": {
@@ -265,21 +265,18 @@ window.PRICE_TABLE = {
   },
   "ext_wall": {
    "name": "外壁のみ塗装（足場込）",
-   "unit": "坪",
-   "qtyFrom": "tsubo",
-   "price": 25000
+   "unit": "一式",
+   "price": 500000
   },
   "ext_wall_roof": {
    "name": "外壁・屋根塗装（足場込）",
-   "unit": "坪",
-   "qtyFrom": "tsubo",
-   "price": 32000
+   "unit": "一式",
+   "price": 562500
   },
   "ext_wash": {
    "name": "高圧洗浄のみ（足場込）",
-   "unit": "坪",
-   "qtyFrom": "tsubo",
-   "price": 8000
+   "unit": "一式",
+   "price": 100000
   },
   "carport_rm": {
    "name": "カーポート撤去",
