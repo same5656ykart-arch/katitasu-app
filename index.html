@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f5f8b">
+<title>カチタス見積もりアプリ</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root {
+    --bg: #f3f5f7; --card: #ffffff; --text: #1d2730; --muted: #6b7a88; --line: #dde3e8;
+    --primary: #1f5f8b; --primary-soft: #e4eef6; --accent: #e07b2a; --danger: #c0392b;
+    --radius: 12px; --nav-h: 60px; --total-h: 58px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+    background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.5; -webkit-text-size-adjust: 100%;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  input, select, textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: #fff; font-size: 16px; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); outline-offset: 0; border-color: var(--primary); }
+  textarea { min-height: 72px; resize: vertical; }
+  label.f { display: block; margin-bottom: 12px; }
+  label.f > span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  header.top { position: sticky; top: 0; z-index: 20; color: #fff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: calc(12px + env(safe-area-inset-top));
+    background: linear-gradient(115deg, #0b2a4a 0%, #1f5f8b 55%, #2a7fb8 100%); box-shadow: 0 2px 10px rgba(11,42,74,.35); overflow: hidden; }
+  header.top::before { content: ""; position: absolute; right: -40px; top: -60px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(224,123,42,.55), rgba(224,123,42,0) 70%); pointer-events: none; }
+  header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, var(--accent), #ffc87a, var(--accent)); }
+  header.top .brand { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; }
+  header.top .logo { width: 40px; height: 40px; border-radius: 11px; flex: none; display: grid; place-items: center; font-weight: 900; font-size: 20px; color: #fff;
+    background: linear-gradient(145deg, #ff9d3c, #e07b2a 60%, #b85a12); box-shadow: 0 3px 8px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.35); letter-spacing: -1px; }
+  header.top .kicker { font-size: 10px; letter-spacing: .32em; font-weight: 700; color: #ffc87a; text-transform: uppercase; line-height: 1; }
+  header.top h1 { font-size: 18px; margin: 2px 0 0; font-weight: 900; letter-spacing: .02em; line-height: 1.15; text-shadow: 0 2px 6px rgba(0,0,0,.35); white-space: nowrap; }
+  header.top .sub { font-size: 12px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  header.top .btn { position: relative; flex: none; }
+
+  main { padding: 16px 16px calc(var(--nav-h) + var(--total-h) + 24px + env(safe-area-inset-bottom)); max-width: 760px; margin: 0 auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  .card h2 { font-size: 16px; margin: 0 0 12px; }
+  .hint { font-size: 13px; color: var(--muted); }
+  .warn { background: #fff6e8; border: 1px solid #f3cf9a; color: #7a4b00; border-radius: 8px; padding: 10px 12px; font-size: 13px; margin-bottom: 14px; }
+
+  /* 間取り */
+  .rt { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .rt:last-child { border-bottom: 0; }
+  .rt .nm { flex: 1; font-weight: 700; }
+  .room { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+  .room .rh { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .room .rh input { flex: 1; padding: 8px 10px; font-weight: 700; }
+  .room .ra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; }
+  .room .ra select { width: auto; padding: 8px 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { background: var(--primary-soft); color: var(--primary); border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700; }
+  .seg { display: inline-flex; border: 1px solid var(--primary); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; background: #fff; color: var(--primary); padding: 8px 14px; cursor: pointer; font-size: 14px; }
+  .seg button.on { background: var(--primary); color: #fff; font-weight: 700; }
+
+  /* accordion */
+  .cat { background: var(--card); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  .cat-head { width: 100%; display: flex; align-items: center; gap: 10px; padding: 14px 16px; border: 0; background: #fff; text-align: left; cursor: pointer; }
+  .cat-head .nm { font-weight: 700; font-size: 16px; flex: 1; }
+  .cat-head .nm small { font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 6px; }
+  .cat-head .cnt { font-size: 13px; color: var(--primary); background: var(--primary-soft); padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+  .cat-head .chev { color: var(--muted); transition: transform .2s; }
+  .cat.open .cat-head .chev { transform: rotate(180deg); }
+  .cat-body { display: none; border-top: 1px solid var(--line); }
+  .cat.open .cat-body { display: block; }
+  .cat-note { padding: 8px 16px 0; }
+
+  .item { border-bottom: 1px solid var(--line); padding: 10px 16px; }
+  .item:last-child { border-bottom: 0; }
+  .item-main { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .item-main .chk { width: 26px; height: 26px; border-radius: 7px; border: 2px solid #b9c4ce; flex: none; display: grid; place-items: center; color: #fff; font-size: 16px; }
+  .item.on .item-main .chk { background: var(--primary); border-color: var(--primary); }
+  .item-main .nm { flex: 1; font-size: 15px; }
+  .item-main .pr { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .item.on .item-main .pr { color: var(--text); font-weight: 700; }
+  .item-detail { display: none; padding: 10px 0 4px 38px; }
+  .item.on .item-detail { display: block; }
+  .ctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ctl select { width: auto; min-width: 110px; padding: 8px 10px; }
+  .qty { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+  .qty button { width: 44px; height: 42px; border: 0; background: #f0f3f6; font-size: 20px; cursor: pointer; }
+  .qty input { width: 72px; text-align: center; border: 0; border-radius: 0; padding: 8px 4px; -moz-appearance: textfield; }
+  .qty input::-webkit-outer-spin-button, .qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .ctl .unit { color: var(--muted); font-size: 14px; }
+  .ctl .line { margin-left: auto; font-weight: 700; }
+  .item-detail input.memo { margin-top: 8px; font-size: 14px; padding: 8px 10px; }
+  .del { color: var(--danger); background: none; border: 0; font-size: 13px; padding: 4px 6px; cursor: pointer; }
+  .add-row { padding: 12px 16px; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--primary); background: var(--primary); color: #fff; font-weight: 700; cursor: pointer; width: 100%; font-size: 15px; }
+  .btn.sec { background: #fff; color: var(--primary); }
+  .btn.ghost { background: transparent; border-color: var(--line); color: var(--muted); font-weight: 400; }
+  .btn.danger { background: #fff; color: var(--danger); border-color: var(--danger); }
+  .btn.sm { width: auto; padding: 8px 12px; font-size: 14px; }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .stepper button { width: 40px; height: 38px; border: 0; background: #f0f3f6; font-size: 18px; cursor: pointer; }
+  .stepper span { width: 40px; text-align: center; font-weight: 700; }
+
+  /* summary */
+  table.sum { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.sum th, table.sum td { padding: 8px 4px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  table.sum th { font-size: 12px; color: var(--muted); font-weight: 400; }
+  table.sum td.r, table.sum th.r { text-align: right; white-space: nowrap; }
+  table.sum tr.sec td { background: var(--primary); color: #fff; font-weight: 700; font-size: 13px; }
+  table.sum tr.cat td { background: var(--primary-soft); font-weight: 700; color: var(--primary); font-size: 13px; }
+  .totals { margin-top: 12px; }
+  .totals .tr { display: flex; justify-content: space-between; padding: 6px 0; }
+  .totals .tr.big { font-size: 20px; font-weight: 700; border-top: 2px solid var(--text); margin-top: 6px; padding-top: 10px; }
+  .totals input { width: 120px; text-align: right; padding: 6px 8px; }
+
+  .totalbar { position: fixed; left: 0; right: 0; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); height: var(--total-h); z-index: 20; background: #fff; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+  .totalbar .lbl { font-size: 12px; color: var(--muted); }
+  .totalbar .amt { font-size: 22px; font-weight: 800; color: var(--primary); }
+  nav.bottom { position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--nav-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: #fff; border-top: 1px solid var(--line); display: flex; z-index: 20; }
+  nav.bottom button { flex: 1; border: 0; background: none; color: var(--muted); font-size: 11px; padding: 8px 0; white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0; cursor: pointer; }
+  nav.bottom button .ic { font-size: 20px; }
+  nav.bottom button.active { color: var(--primary); font-weight: 700; }
+
+  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h) + var(--total-h) + 20px); background: #333; color: #fff; padding: 10px 16px; border-radius: 999px; font-size: 14px; opacity: 0; transition: opacity .2s; z-index: 50; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  #sheet { display: none; }
+  @media print {
+    @page { size: A4; margin: 14mm 12mm; }
+    body { background: #fff; color: #000; font-size: 11pt; }
+    #app { display: none !important; }
+    #sheet { display: block; }
+    .sheet h1 { font-size: 20pt; text-align: center; letter-spacing: .3em; margin: 0 0 14pt; }
+    .sheet .meta { display: flex; justify-content: space-between; gap: 20pt; margin-bottom: 12pt; }
+    .sheet .meta .l { flex: 1; }
+    .sheet .meta .r { width: 220pt; font-size: 10pt; }
+    .sheet .cust { font-size: 14pt; border-bottom: 1px solid #000; padding-bottom: 2pt; margin-bottom: 6pt; }
+    .sheet .grand { font-size: 15pt; font-weight: 700; border-bottom: 2px solid #000; padding: 4pt 0; margin: 8pt 0 10pt; display: flex; justify-content: space-between; }
+    .sheet table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+    .sheet th, .sheet td { border: 1px solid #000; padding: 4pt 5pt; vertical-align: top; }
+    .sheet th { background: #eee; font-weight: 700; }
+    .sheet td.r, .sheet th.r { text-align: right; white-space: nowrap; }
+    .sheet tr.sec td { background: #ddd; font-weight: 700; }
+    .sheet tr.cat td { background: #f4f4f4; font-weight: 700; }
+    .sheet .tot td { font-weight: 700; }
+    .sheet .note { margin-top: 10pt; font-size: 9.5pt; white-space: pre-wrap; }
+    .sheet tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand"><div class="logo">¥</div><div style="min-width:0"><div class="kicker">Katitasu Estimate</div><h1>カチタス見積もりアプリ</h1><div class="sub" id="hdrSub">物件未入力</div></div></div>
+    <button class="btn sm sec" id="btnPrintTop" type="button">🖨 PDF</button>
+  </header>
+
+  <main>
+    <!-- 物件・間取り -->
+    <section class="page active" id="page-site">
+      <div class="card">
+        <h2>物件・お客様</h2>
+        <label class="f"><span>物件名</span><input id="f_site" placeholder="例：○○市△△町 戸建"></label>
+        <label class="f"><span>お客様名</span><input id="f_cust" placeholder="例：山田 様"></label>
+        <div class="row2">
+          <label class="f"><span>現調日</span><input id="f_date" type="date"></label>
+          <label class="f"><span>延床（坪）</span><input id="f_tsubo" type="number" inputmode="decimal" min="0" step="1" placeholder="30"></label>
+        </div>
+        <div class="row2">
+          <label class="f"><span>当社担当</span><input id="f_staff" placeholder="担当者名"></label>
+          <label class="f"><span>カチタス担当</span><input id="f_kt" placeholder="担当者名"></label>
+        </div>
+        <label class="f"><span>住所</span><input id="f_addr" placeholder="例：鹿児島市○○ 1-2-3"></label>
+        <label class="f"><span>現調メモ</span><textarea id="f_memo" placeholder="例：2F和室の天井シミあり。給湯器は2010年製。"></textarea></label>
+      </div>
+
+      <div class="card">
+        <h2>間取り</h2>
+        <div class="rt" style="border-bottom:1px solid var(--line)"><span>🏠</span><span class="nm">建物</span><span class="seg" id="floorsSeg"><button type="button" data-v="2">2階建</button><button type="button" data-v="1">平屋</button></span></div>
+        <div class="hint" style="margin:10px 0 4px">必ずある部屋（自動で入ります）</div>
+        <div id="fixedRooms" class="chips"></div>
+        <div class="hint" style="margin:12px 0 0">数を選ぶ部屋</div>
+        <div id="roomTypes"></div>
+      </div>
+
+      <div class="card">
+        <h2>部屋ごとの設定</h2>
+        <div class="hint" style="margin-bottom:10px">畳数から㎡や巾木の長さを仮入力します（床㎡＝畳数×1.63、クロス㎡＝床㎡×4×1.1）。玄関1畳・廊下3畳・階段3畳は固定で計算に入れます。和室は真壁／大壁、浴室は在来／ユニットバスを選んでください。</div>
+        <div id="rooms"></div>
+        <button class="btn" id="btnGoWork" type="button" style="margin-top:6px">中工事の入力へ →</button>
+      </div>
+    </section>
+
+    <!-- 中工事 -->
+    <section class="page" id="page-in">
+      <div class="warn">単価は<strong>仮の目安</strong>です（お客様提示用の単価のみ。原価は含まれません）。</div>
+      <div id="inCats"></div>
+    </section>
+
+    <!-- 外工事 -->
+    <section class="page" id="page-out">
+      <div class="warn">単価は<strong>仮の目安</strong>です。外壁塗装は延床坪数（間取りタブ）から数量を仮入力します。</div>
+      <div id="outCats"></div>
+    </section>
+
+    <!-- 発注物 -->
+    <section class="page" id="page-order">
+      <div class="warn">単価は<strong>仮の目安</strong>です。材料・外注・自社工事部など、発注するものをここに入れます。</div>
+      <div id="orderCats"></div>
+    </section>
+
+    <!-- 見積 -->
+    <section class="page" id="page-est">
+      <div class="card">
+        <h2>見積内容</h2>
+        <div id="sumWrap"></div>
+        <div class="totals">
+          <div class="tr"><span>中工事 小計</span><span id="t_in">¥0</span></div>
+          <div class="tr"><span>外工事 小計</span><span id="t_out">¥0</span></div>
+          <div class="tr"><span>発注物 小計</span><span id="t_ord">¥0</span></div>
+          <div class="tr"><span>小計</span><span id="t_sub">¥0</span></div>
+          <div class="tr"><span>諸経費（<span id="t_ohRate"></span>%）</span><span id="t_oh">¥0</span></div>
+          <div class="tr"><span>値引き</span><span><input id="f_discount" type="number" inputmode="numeric" min="0" step="1000" placeholder="0"></span></div>
+          <div class="tr"><span>税抜合計</span><span id="t_pre">¥0</span></div>
+          <div class="tr"><span>消費税（<span id="t_taxRate"></span>%）</span><span id="t_tax">¥0</span></div>
+          <div class="tr big"><span>合計（税込）</span><span id="t_total">¥0</span></div>
+        </div>
+        <label class="f" style="margin-top:12px"><span>見積書に載せる備考</span><textarea id="f_note"></textarea></label>
+        <div class="btn-row">
+          <button class="btn" id="btnPrint" type="button">🖨 印刷 / PDF</button>
+          <button class="btn sec" id="btnCopy" type="button">📋 テキストをコピー</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn danger" id="btnClear" type="button" style="grid-column: 1 / -1">新しい見積を作る（入力をクリア）</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 設定 -->
+    <section class="page" id="page-set">
+      <div class="card">
+        <h2>基本設定</h2>
+        <label class="f"><span>会社名（見積書に表示）</span><input id="s_company"></label>
+        <label class="f"><span>会社住所・電話など（見積書に表示）</span><textarea id="s_companyInfo"></textarea></label>
+        <button class="btn" id="btnSaveSet" type="button">設定を保存</button>
+      </div>
+      <div class="card">
+        <h2>単価について</h2>
+        <div class="hint">
+          このアプリの金額は、管理者が管理する<strong>原価マスター</strong>から作られた<strong>お客様提示用の単価</strong>です。原価は含まれていません。<br>
+          単価・諸経費率・消費税率はアプリ内では変更できません。直したい場合は管理者に連絡してください。
+        </div>
+        <table class="sum" style="margin-top:10px">
+          <tr><td>諸経費率</td><td class="r" id="s_ohView"></td></tr>
+          <tr><td>消費税率</td><td class="r" id="s_taxView"></td></tr>
+          <tr><td>単価データの生成日</td><td class="r" id="s_genView"></td></tr>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="totalbar">
+    <div><div class="lbl">合計（税込）</div><div class="amt" id="barTotal">¥0</div></div>
+    <button class="btn sm" id="btnGoEst" type="button">見積を見る</button>
+  </div>
+  <nav class="bottom">
+    <button data-page="site" class="active" type="button"><span class="ic">🏡</span>間取り</button>
+    <button data-page="in" type="button"><span class="ic">🛠</span>中工事</button>
+    <button data-page="out" type="button"><span class="ic">🏘️</span>外工事</button>
+    <button data-page="order" type="button"><span class="ic">📦</span>発注</button>
+    <button data-page="est" type="button"><span class="ic">📄</span>見積</button>
+    <button data-page="set" type="button"><span class="ic">⚙️</span>設定</button>
+  </nav>
+  <div class="toast" id="toast"></div>
+</div>
+
+<div id="sheet"></div>
+
+<script src="prices.js"></script>
+<script>
+(function () {
+  'use strict';
+  const LS = { draft: 'katitasu3.draft4', settings: 'katitasu3.settings2' };
+  const $ = (s) => document.querySelector(s);
+  const yen = (n) => '¥' + Math.round(n).toLocaleString('ja-JP');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmtQty = (q) => (Math.round(q * 10) / 10).toString();
+  function lsGet(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 保存不可でも継続 */ } }
+
+  // ---------- 設定 ----------
+  // 単価・率・備考の初期値は原価マスターから生成された prices.js に入っている（客出しのみ）
+  const MASTER = (window.PRICE_TABLE && window.PRICE_TABLE.settings) || {};
+  const DEFAULT_SETTINGS = {
+    company: MASTER.company || '株式会社ワイケイアート', companyInfo: MASTER.companyInfo || '',
+    overheadRate: MASTER.overheadRate != null ? MASTER.overheadRate : 10, taxRate: MASTER.taxRate != null ? MASTER.taxRate : 10,
+    defaultNote: MASTER.defaultNote || ''
+  };
+  // 端末で変えられるのは会社名・会社情報だけ。率と備考は常にマスターの値を使う
+  const saved = lsGet(LS.settings) || {};
+  let settings = Object.assign({}, DEFAULT_SETTINGS, { company: saved.company || DEFAULT_SETTINGS.company, companyInfo: saved.companyInfo != null ? saved.companyInfo : DEFAULT_SETTINGS.companyInfo });
+
+  // ---------- 単価表 ----------
+  const BASE = window.PRICE_TABLE || { items: {}, roomTypes: [], exterior: [] };
+  function buildPrices() { return JSON.parse(JSON.stringify(BASE)); }
+  let P = buildPrices();
+  const RT = () => P.roomTypes;
+  const rtById = (id) => RT().find((r) => r.id === id);
+
+  // ---------- 見積データ ----------
+  const COMMON_ID = 'common';
+  function defaultRooms() {
+    const rooms = []; let seq = 1;
+    RT().forEach((rt) => { if (rt.fixed) return; for (let i = 1; i <= (rt.defaultCount || 0); i++) rooms.push(newRoom(rt, i, seq++, 2)); });
+    return { rooms, seq };
+  }
+  function roomName(rt, n, floors) {
+    if (rt.fixed) return rt.name;
+    if (rt.secondFloorFirst && floors === 2 && n === 1) return rt.secondFloorFirst;
+    const base = rt.base || rt.name, no = n + ((rt.startNo || 1) - 1);
+    return base + ((rt.defaultCount || 0) > 1 || no > 1 ? no : '');
+  }
+  function newRoom(rt, n, seq, floors) {
+    return { id: 'r' + seq, type: rt.id, name: roomName(rt, n, floors == null ? draft.floors : floors), tatami: rt.defaultTatami || 2, wall: 'shinkabe', bath: 'ub' };
+  }
+  function blankDraft() {
+    const d = defaultRooms();
+    return { site: {}, tsubo: 30, floors: 2, rooms: d.rooms, roomSeq: d.seq, lines: {}, custom: [], discount: 0, note: settings.defaultNote, open: {} };
+  }
+  let draft = Object.assign(blankDraft(), lsGet(LS.draft) || {});
+  ['site', 'lines', 'open'].forEach((k) => { if (!draft[k]) draft[k] = {}; });
+  if (!Array.isArray(draft.rooms)) draft.rooms = [];
+  if (!Array.isArray(draft.custom)) draft.custom = [];
+  if (draft.floors !== 1 && draft.floors !== 2) draft.floors = 2;
+  const saveDraft = () => lsSet(LS.draft, draft);
+
+  // 必ずある部屋を揃える（2階建なら階段・2階廊下も）。部屋は種類の順に並べる
+  function ensureFixedRooms() {
+    RT().forEach((rt) => {
+      if (!rt.fixed) return;
+      const has = draft.rooms.some((r) => r.type === rt.id);
+      if (rt.floor2 && draft.floors !== 2) { draft.rooms.filter((r) => r.type === rt.id).forEach((r) => removeRoom(r.id)); }
+      else if (!has) draft.rooms.push(newRoom(rt, 1, draft.roomSeq++));
+      if (rt.noSettings) draft.rooms.filter((r) => r.type === rt.id).forEach((r) => { r.tatami = rt.defaultTatami || 1; });
+    });
+    const order = RT().map((x) => x.id);
+    draft.rooms.sort((a, b) => (order.indexOf(a.type) - order.indexOf(b.type)) || (Number(a.id.slice(1)) - Number(b.id.slice(1))));
+  }
+
+  // 部屋の広さから数量の目安を出す
+  // 床㎡ = 畳数 × 1.63 / 天井・壁クロス㎡ = 床㎡ × 4 × 1.1
+  function roomSize(room) {
+    const floor = (Number(room.tatami) || 0) * 1.63;
+    const perim = 4 * Math.sqrt(floor);
+    const walls = perim * 2.4;
+    return { floor: r1(floor), perim: r1(perim), walls: r1(walls), cloth: r1(floor * 4 * 1.1), tatami: Number(room.tatami) || 0 };
+  }
+  const r1 = (n) => Math.round(n * 10) / 10;
+  function defaultQty(it, room) {
+    if (it.qtyFrom === 'tsubo') return Number(draft.tsubo) || 0;
+    if (it.qtyFrom && room) return roomSize(room)[it.qtyFrom] || 0;
+    if (it.qtyDefault != null) return it.qtyDefault;
+    return 1;
+  }
+  function visible(it, room) {
+    if (!it.onlyIf || !room) return true;
+    return Object.keys(it.onlyIf).every((k) => room[k] === it.onlyIf[k]);
+  }
+  function unitPrice(it, line) {
+    if (it.grades && it.grades.length) {
+      const g = it.grades.find((x) => x.name === line.grade) || it.grades[0];
+      return Number(g.price) || 0;
+    }
+    return Number(it.price) || 0;
+  }
+  function getLine(key, it, room) {
+    let l = draft.lines[key];
+    if (!l) l = draft.lines[key] = { on: false, qty: defaultQty(it, room), grade: it.grades ? it.grades[0].name : '', memo: '', touched: false };
+    return l;
+  }
+  // 畳数・坪数が変わったら、手入力していない数量を更新
+  function refreshDefaultQty(scope) {
+    Object.keys(draft.lines).forEach((key) => {
+      const [sc, itemId] = key.split('|');
+      if (scope && sc !== scope) return;
+      const it = P.items[itemId]; const l = draft.lines[key];
+      if (!it || !l || l.touched) return;
+      const room = draft.rooms.find((r) => r.id === sc);
+      if (it.qtyFrom === 'tsubo' || room) l.qty = defaultQty(it, room);
+    });
+  }
+
+  // 計算
+  function compute() {
+    const sections = [];
+    const sumGroup = (scope, itemIds, room) => {
+      const rows = [];
+      itemIds.forEach((id) => {
+        const it = P.items[id]; if (!it || !visible(it, room)) return;
+        const l = draft.lines[scope + '|' + id]; if (!l || !l.on) return;
+        const qty = Number(l.qty) || 0, up = unitPrice(it, l);
+        rows.push({ name: it.name, grade: it.grades ? (l.grade || it.grades[0].name) : '', unit: it.unit, qty, up, amount: qty * up, memo: l.memo || '' });
+      });
+      draft.custom.filter((x) => x.scope === scope).forEach((x) => {
+        const qty = Number(x.qty) || 0, up = Number(x.price) || 0;
+        rows.push({ name: x.name || '（名称未入力）', grade: '', unit: x.unit || '一式', qty, up, amount: qty * up, memo: x.memo || '' });
+      });
+      return rows;
+    };
+    const inGroups = [];
+    draft.rooms.forEach((room) => { const rt = rtById(room.type); if (!rt) return; const rows = sumGroup(room.id, rt.items, room); if (rows.length) inGroups.push({ name: roomLabel(room), items: rows }); });
+    if (P.interiorCommon) { const rows = sumGroup(COMMON_ID, P.interiorCommon.items, null); if (rows.length) inGroups.push({ name: P.interiorCommon.name, items: rows }); }
+    const outGroups = [];
+    (P.exterior || []).forEach((g) => { const rows = sumGroup('ext_' + g.id, g.items, null); if (rows.length) outGroups.push({ name: g.name, items: rows }); });
+    const ordGroups = [];
+    (P.orders || []).forEach((g) => { const rows = sumGroup('ord_' + g.id, g.items, null); if (rows.length) ordGroups.push({ name: g.name, items: rows }); });
+    const tot = (gs) => gs.reduce((a, g) => a + g.items.reduce((b, r) => b + r.amount, 0), 0);
+    const inSub = tot(inGroups), outSub = tot(outGroups), ordSub = tot(ordGroups);
+    if (inGroups.length) sections.push({ title: '中工事', groups: inGroups, sub: inSub });
+    if (outGroups.length) sections.push({ title: '外工事', groups: outGroups, sub: outSub });
+    if (ordGroups.length) sections.push({ title: '発注物', groups: ordGroups, sub: ordSub });
+    const sub = inSub + outSub + ordSub;
+    const oh = Math.round(sub * (Number(settings.overheadRate) || 0) / 100);
+    const discount = Number(draft.discount) || 0;
+    const pre = Math.max(0, sub + oh - discount);
+    const tax = Math.round(pre * (Number(settings.taxRate) || 0) / 100);
+    return { sections, inSub, outSub, ordSub, sub, oh, discount, pre, tax, total: pre + tax };
+  }
+  function roomLabel(room) {
+    const rt = rtById(room.type); const tags = [];
+    if (rt && rt.wall) tags.push(room.wall === 'shinkabe' ? '真壁' : '大壁');
+    if (rt && rt.bath) tags.push(room.bath === 'zairai' ? '在来' : 'ユニットバス');
+    if (rt && rt.size) tags.push(room.tatami + '畳');
+    return room.name + (tags.length ? '（' + tags.join('・') + '）' : '');
+  }
+
+  // ---------- 間取りタブ ----------
+  function renderRoomTypes() {
+    ensureFixedRooms();
+    $('#floorsSeg').querySelectorAll('button').forEach((b) => b.classList.toggle('on', Number(b.dataset.v) === draft.floors));
+    $('#fixedRooms').innerHTML = RT().filter((rt) => rt.fixed && (!rt.floor2 || draft.floors === 2)).map((rt) => `<span>${rt.icon || ''} ${esc(rt.name)}${rt.noSettings ? `<small style="font-weight:400"> ${rt.defaultTatami}畳</small>` : ''}</span>`).join('');
+    const w = $('#roomTypes'); w.innerHTML = '';
+    RT().forEach((rt) => {
+      if (rt.fixed) return;
+      const n = draft.rooms.filter((r) => r.type === rt.id).length;
+      const el = document.createElement('div'); el.className = 'rt';
+      el.innerHTML = `<span>${rt.icon || ''}</span><span class="nm">${esc(rt.name)}</span><span class="stepper"><button type="button" class="m">−</button><span>${n}</span><button type="button" class="p">＋</button></span>`;
+      el.querySelector('.p').addEventListener('click', () => { addRoom(rt, n + 1); saveDraft(); renderRoomTypes(); renderRooms(); renderIn(); refreshTotals(); });
+      el.querySelector('.m').addEventListener('click', () => {
+        const list = draft.rooms.filter((r) => r.type === rt.id); if (!list.length) return;
+        const last = list[list.length - 1];
+        const used = Object.keys(draft.lines).some((k) => k.startsWith(last.id + '|') && draft.lines[k].on) || draft.custom.some((x) => x.scope === last.id);
+        if (used && !confirm(`「${last.name}」には工事が入力されています。削除しますか？`)) return;
+        removeRoom(last.id); saveDraft(); renderRoomTypes(); renderRooms(); renderIn(); refreshTotals();
+      });
+      w.appendChild(el);
+    });
+  }
+  // 同じ種類の部屋の後ろに追加（洋室1,2,3 と並ぶように）
+  function addRoom(rt, n) { draft.rooms.push(newRoom(rt, n, draft.roomSeq++)); ensureFixedRooms(); }
+  function setFloors(f) {
+    if (f === draft.floors) return;
+    if (f === 1) {
+      const used = draft.rooms.some((r) => { const rt = rtById(r.type); return rt && rt.floor2 && Object.keys(draft.lines).some((k) => k.startsWith(r.id + '|') && draft.lines[k].on); });
+      if (used && !confirm('階段・2階廊下に工事が入力されています。平屋にすると消えますが、よろしいですか？')) return;
+    }
+    draft.floors = f; ensureFixedRooms();
+    // 「2階トイレ」など、階数で決まる名前を付け直す（手で変えた名前はそのまま）
+    draft.rooms.forEach((r) => { const rt = rtById(r.type); if (rt && rt.secondFloorFirst && (r.name === rt.secondFloorFirst || r.name === roomName(rt, 1, f === 2 ? 1 : 2))) r.name = roomName(rt, 1, f); });
+    saveDraft(); renderRoomTypes(); renderRooms(); renderIn(); refreshTotals();
+  }
+  $('#floorsSeg').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => setFloors(Number(b.dataset.v))));
+  function removeRoom(id) {
+    draft.rooms = draft.rooms.filter((r) => r.id !== id);
+    Object.keys(draft.lines).forEach((k) => { if (k.startsWith(id + '|')) delete draft.lines[k]; });
+    draft.custom = draft.custom.filter((x) => x.scope !== id);
+  }
+  function renderRooms() {
+    const w = $('#rooms'); w.innerHTML = '';
+    if (!draft.rooms.length) { w.innerHTML = '<div class="hint">上で部屋数を設定してください。</div>'; return; }
+    draft.rooms.forEach((room) => {
+      const rt = rtById(room.type); if (!rt || rt.noSettings) return;
+      const el = document.createElement('div'); el.className = 'room';
+      let attrs = '';
+      if (rt.size) attrs += `<label>畳数 <select class="tatami">${[1, 2, 3, 4.5, 6, 8, 10, 12, 15, 20].map((t) => `<option value="${t}" ${Number(room.tatami) === t ? 'selected' : ''}>${t}畳</option>`).join('')}</select></label>`;
+      if (rt.wall) attrs += `<span class="seg" data-k="wall"><button type="button" data-v="shinkabe" class="${room.wall === 'shinkabe' ? 'on' : ''}">真壁</button><button type="button" data-v="okabe" class="${room.wall === 'okabe' ? 'on' : ''}">大壁</button></span>`;
+      if (rt.bath) attrs += `<span class="seg" data-k="bath"><button type="button" data-v="zairai" class="${room.bath === 'zairai' ? 'on' : ''}">在来</button><button type="button" data-v="ub" class="${room.bath === 'ub' ? 'on' : ''}">ユニットバス</button></span>`;
+      el.innerHTML = `<div class="rh"><span>${rt.icon || ''}</span><input class="rname" value="${esc(room.name)}">${rt.fixed ? '<span class="hint" style="white-space:nowrap">自動</span>' : '<button type="button" class="del">削除</button>'}</div>${attrs ? `<div class="ra">${attrs}</div>` : ''}`;
+      el.querySelector('.rname').addEventListener('input', (e) => { room.name = e.target.value; saveDraft(); renderIn(); });
+      if (el.querySelector('.del')) el.querySelector('.del').addEventListener('click', () => {
+        const used = Object.keys(draft.lines).some((k) => k.startsWith(room.id + '|') && draft.lines[k].on);
+        if (used && !confirm(`「${room.name}」には工事が入力されています。削除しますか？`)) return;
+        removeRoom(room.id); saveDraft(); renderRoomTypes(); renderRooms(); renderIn(); refreshTotals();
+      });
+      const ts = el.querySelector('.tatami');
+      if (ts) ts.addEventListener('change', () => { room.tatami = Number(ts.value); refreshDefaultQty(room.id); saveDraft(); renderIn(); refreshTotals(); });
+      el.querySelectorAll('.seg').forEach((seg) => seg.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+        room[seg.dataset.k] = b.dataset.v; seg.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); saveDraft(); renderIn(); refreshTotals();
+      })));
+      w.appendChild(el);
+    });
+  }
+
+  // ---------- 工事タブ（中・外） ----------
+  function renderIn() {
+    const w = $('#inCats'); w.innerHTML = '';
+    if (!draft.rooms.length) w.innerHTML = '<div class="card hint">「物件・間取り」タブで部屋数を設定してください。</div>';
+    draft.rooms.forEach((room) => { const rt = rtById(room.type); if (rt) w.appendChild(renderGroup(room.id, roomLabel(room), rt.icon, rt.items, room, '')); });
+    if (P.interiorCommon) w.appendChild(renderGroup(COMMON_ID, P.interiorCommon.name, P.interiorCommon.icon, P.interiorCommon.items, null, ''));
+  }
+  function renderOut() {
+    const w = $('#outCats'); w.innerHTML = '';
+    (P.exterior || []).forEach((g) => w.appendChild(renderGroup('ext_' + g.id, g.name, g.icon, g.items, null, g.note, g.exclusive)));
+  }
+  function renderOrder() {
+    const w = $('#orderCats'); w.innerHTML = '';
+    (P.orders || []).forEach((g) => w.appendChild(renderGroup('ord_' + g.id, g.name, g.icon, g.items, null, g.note)));
+  }
+  function renderGroup(scope, title, icon, itemIds, room, note, exclusive) {
+    const cat = document.createElement('div');
+    cat.className = 'cat' + (draft.open[scope] ? ' open' : '');
+    cat.innerHTML = `<button class="cat-head" type="button"><span>${icon || ''}</span><span class="nm">${esc(title)}</span><span class="cnt"></span><span class="chev">▾</span></button><div class="cat-body">${note ? `<div class="cat-note hint">${esc(note)}</div>` : ''}</div>`;
+    cat.querySelector('.cat-head').addEventListener('click', () => { draft.open[scope] = !draft.open[scope]; cat.classList.toggle('open'); saveDraft(); });
+    const body = cat.querySelector('.cat-body');
+    const updCnt = () => {
+      let n = 0, amt = 0;
+      itemIds.forEach((id) => { const it = P.items[id], l = draft.lines[scope + '|' + id]; if (it && visible(it, room) && l && l.on) { n++; amt += (Number(l.qty) || 0) * unitPrice(it, l); } });
+      draft.custom.filter((x) => x.scope === scope).forEach((x) => { n++; amt += (Number(x.qty) || 0) * (Number(x.price) || 0); });
+      const c = cat.querySelector('.cnt'); c.textContent = n ? `${n}件 ${yen(amt)}` : ''; c.style.display = n ? '' : 'none';
+    };
+    const itemEls = [];
+    itemIds.forEach((id) => {
+      const it = P.items[id]; if (!it || !visible(it, room)) return;
+      const el = renderItem(scope, id, it, room, updCnt, () => { if (exclusive) itemEls.forEach((o) => { if (o !== el) o.off(); }); });
+      itemEls.push(el); body.appendChild(el.el);
+    });
+    draft.custom.filter((x) => x.scope === scope).forEach((x) => body.appendChild(renderCustom(x, updCnt, () => rerenderScope(scope))));
+    const add = document.createElement('div'); add.className = 'add-row';
+    add.innerHTML = '<button class="btn ghost sm" type="button">＋ 表にない工事を追加</button>';
+    add.querySelector('button').addEventListener('click', () => {
+      draft.custom.push({ id: 'c' + Date.now(), scope, name: '', unit: '一式', price: 0, qty: 1, memo: '' });
+      draft.open[scope] = true; saveDraft(); rerenderScope(scope); refreshTotals();
+    });
+    body.appendChild(add);
+    updCnt();
+    return cat;
+  }
+  function rerenderScope(scope) { if (scope.startsWith('ext_')) renderOut(); else if (scope.startsWith('ord_')) renderOrder(); else renderIn(); }
+
+  function renderItem(scope, id, it, room, updCnt, onTurnOn) {
+    const key = scope + '|' + id;
+    const l = getLine(key, it, room);
+    const el = document.createElement('div');
+    el.className = 'item' + (l.on ? ' on' : '');
+    const gradeSel = it.grades ? `<select class="grade">${it.grades.map((g) => `<option value="${esc(g.name)}" ${g.name === l.grade ? 'selected' : ''}>${esc(g.name)} ${yen(g.price)}</option>`).join('')}</select>` : '';
+    el.innerHTML = `
+      <div class="item-main"><span class="chk">✓</span><span class="nm">${esc(it.name)}</span><span class="pr"></span></div>
+      <div class="item-detail">
+        <div class="ctl">${gradeSel}
+          <span class="qty"><button type="button" class="m">−</button><input type="number" inputmode="decimal" min="0" step="any" value="${fmtQty(Number(l.qty) || 0)}"><button type="button" class="p">＋</button></span>
+          <span class="unit">${esc(it.unit)}</span><span class="line"></span></div>
+        <input class="memo" placeholder="メモ（場所・商品名など）" value="${esc(l.memo)}">
+        ${it.note ? `<div class="hint">${esc(it.note)}</div>` : ''}
+      </div>`;
+    const pr = el.querySelector('.pr'), line = el.querySelector('.line'), qtyIn = el.querySelector('.qty input');
+    const upd = () => { const up = unitPrice(it, l), qty = Number(l.qty) || 0; pr.textContent = l.on ? yen(up * qty) : yen(up) + '/' + it.unit; line.textContent = yen(up * qty); };
+    const changed = () => { upd(); saveDraft(); updCnt(); refreshTotals(); };
+    const off = () => { if (l.on) { l.on = false; el.classList.remove('on'); upd(); } };
+    el.querySelector('.item-main').addEventListener('click', () => { l.on = !l.on; el.classList.toggle('on', l.on); if (l.on && onTurnOn) onTurnOn(); changed(); });
+    el.querySelector('.m').addEventListener('click', () => { l.qty = Math.max(0, (Number(l.qty) || 0) - 1); l.touched = true; qtyIn.value = fmtQty(l.qty); changed(); });
+    el.querySelector('.p').addEventListener('click', () => { l.qty = (Number(l.qty) || 0) + 1; l.touched = true; qtyIn.value = fmtQty(l.qty); changed(); });
+    qtyIn.addEventListener('input', () => { l.qty = qtyIn.value === '' ? 0 : Number(qtyIn.value); l.touched = true; changed(); });
+    const gs = el.querySelector('.grade');
+    if (gs) gs.addEventListener('change', () => { l.grade = gs.value; changed(); });
+    el.querySelector('.memo').addEventListener('input', (e) => { l.memo = e.target.value; saveDraft(); });
+    upd();
+    return { el, off };
+  }
+
+  function renderCustom(x, updCnt, rerender) {
+    const el = document.createElement('div');
+    el.className = 'item on';
+    el.innerHTML = `
+      <div class="item-main" style="cursor:default"><span class="chk" style="background:var(--accent);border-color:var(--accent)">＋</span><input class="cname" placeholder="工事名を入力" value="${esc(x.name)}" style="flex:1;padding:8px 10px"><button type="button" class="del">削除</button></div>
+      <div class="item-detail">
+        <div class="ctl">
+          <input class="cprice" type="number" inputmode="numeric" min="0" placeholder="単価" value="${x.price || ''}" style="width:110px;text-align:right;padding:8px">
+          <span class="unit">円 ×</span>
+          <span class="qty"><button type="button" class="m">−</button><input class="cqty" type="number" inputmode="decimal" min="0" step="any" value="${esc(x.qty)}"><button type="button" class="p">＋</button></span>
+          <input class="cunit" placeholder="単位" value="${esc(x.unit)}" style="width:64px;padding:8px">
+          <span class="line"></span></div>
+        <input class="memo" placeholder="メモ" value="${esc(x.memo)}">
+      </div>`;
+    const line = el.querySelector('.line'), qtyIn = el.querySelector('.cqty');
+    const upd = () => { line.textContent = yen((Number(x.price) || 0) * (Number(x.qty) || 0)); };
+    const changed = () => { upd(); saveDraft(); updCnt(); refreshTotals(); };
+    const bind = (sel, key, num) => el.querySelector(sel).addEventListener('input', (e) => { x[key] = num ? (e.target.value === '' ? 0 : Number(e.target.value)) : e.target.value; changed(); });
+    bind('.cname', 'name'); bind('.cprice', 'price', true); bind('.cqty', 'qty', true); bind('.cunit', 'unit'); bind('.memo', 'memo');
+    el.querySelector('.m').addEventListener('click', () => { x.qty = Math.max(0, (Number(x.qty) || 0) - 1); qtyIn.value = x.qty; changed(); });
+    el.querySelector('.p').addEventListener('click', () => { x.qty = (Number(x.qty) || 0) + 1; qtyIn.value = x.qty; changed(); });
+    el.querySelector('.del').addEventListener('click', () => { draft.custom = draft.custom.filter((y) => y.id !== x.id); saveDraft(); rerender(); refreshTotals(); });
+    upd();
+    return el;
+  }
+
+  // ---------- 合計・見積タブ ----------
+  function refreshTotals() {
+    const r = compute();
+    $('#barTotal').textContent = yen(r.total);
+    $('#t_in').textContent = yen(r.inSub); $('#t_out').textContent = yen(r.outSub); $('#t_ord').textContent = yen(r.ordSub);
+    $('#t_sub').textContent = yen(r.sub); $('#t_oh').textContent = yen(r.oh); $('#t_ohRate').textContent = settings.overheadRate;
+    $('#t_pre').textContent = yen(r.pre); $('#t_tax').textContent = yen(r.tax); $('#t_taxRate').textContent = settings.taxRate;
+    $('#t_total').textContent = yen(r.total);
+    const w = $('#sumWrap');
+    if (!r.sections.length) { w.innerHTML = '<div class="hint">まだ工事が選ばれていません。「中工事」「外工事」「発注」タブで項目をONにしてください。</div>'; return; }
+    let h = '<table class="sum"><tr><th>工事内容</th><th class="r">数量</th><th class="r">金額</th></tr>';
+    r.sections.forEach((s) => {
+      h += `<tr class="sec"><td colspan="2">${esc(s.title)}</td><td class="r">${yen(s.sub)}</td></tr>`;
+      s.groups.forEach((g) => {
+        h += `<tr class="cat"><td colspan="3">${esc(g.name)}</td></tr>`;
+        g.items.forEach((i) => {
+          h += `<tr><td>${esc(i.name)}${i.grade ? `<br><span class="hint">${esc(i.grade)}</span>` : ''}${i.memo ? `<br><span class="hint">${esc(i.memo)}</span>` : ''}</td><td class="r">${fmtQty(i.qty)}${esc(i.unit)}<br><span class="hint">@${yen(i.up)}</span></td><td class="r">${yen(i.amount)}</td></tr>`;
+        });
+      });
+    });
+    w.innerHTML = h + '</table>';
+  }
+
+  // ---------- 物件情報 ----------
+  const siteFields = ['site', 'addr', 'cust', 'date', 'staff', 'kt', 'memo'];
+  function bindSite() {
+    siteFields.forEach((k) => {
+      const el = $('#f_' + k);
+      el.value = draft.site[k] || (k === 'date' ? new Date().toISOString().slice(0, 10) : '');
+      draft.site[k] = el.value;
+      el.oninput = () => { draft.site[k] = el.value; saveDraft(); hdr(); };
+    });
+    $('#f_tsubo').value = draft.tsubo || '';
+    $('#f_tsubo').oninput = (e) => { draft.tsubo = Number(e.target.value) || 0; refreshDefaultQty(); saveDraft(); renderOut(); refreshTotals(); };
+    $('#f_discount').value = draft.discount || '';
+    $('#f_discount').oninput = (e) => { draft.discount = Number(e.target.value) || 0; saveDraft(); refreshTotals(); };
+    $('#f_note').value = draft.note ?? settings.defaultNote;
+    $('#f_note').oninput = (e) => { draft.note = e.target.value; saveDraft(); };
+    hdr();
+  }
+  function hdr() { $('#hdrSub').textContent = [draft.site.site, draft.site.cust].filter(Boolean).join(' / ') || '物件未入力'; }
+
+  // ---------- 印刷 ----------
+  function buildSheet() {
+    const r = compute(), s = draft.site;
+    const d = s.date ? s.date.replace(/-/g, '/') : '';
+    let h = `<div class="sheet"><h1>概算見積書</h1>
+      <div class="meta"><div class="l">
+        <div class="cust">${esc(s.cust || '　')} 様</div>
+        <div>物件名：${esc(s.site || '')}</div>
+        <div>住　所：${esc(s.addr || '')}</div>
+        ${s.kt ? `<div>カチタス担当：${esc(s.kt)} 様</div>` : ''}
+        <div class="grand"><span>お見積合計（税込）</span><span>${yen(r.total)}</span></div>
+      </div><div class="r">
+        <div>見積日：${esc(d)}</div><div style="margin-top:8pt;font-weight:700;font-size:11pt">${esc(settings.company)}</div>
+        <div style="white-space:pre-wrap">${esc(settings.companyInfo)}</div>${s.staff ? `<div>担当：${esc(s.staff)}</div>` : ''}
+      </div></div>
+      <table><tr><th style="width:42%">工事内容</th><th>仕様・備考</th><th class="r">数量</th><th class="r">単価</th><th class="r">金額</th></tr>`;
+    r.sections.forEach((sec) => {
+      h += `<tr class="sec"><td colspan="4">【${esc(sec.title)}】</td><td class="r">${yen(sec.sub)}</td></tr>`;
+      sec.groups.forEach((g) => {
+        h += `<tr class="cat"><td colspan="5">■ ${esc(g.name)}</td></tr>`;
+        g.items.forEach((i) => { h += `<tr><td>${esc(i.name)}</td><td>${esc([i.grade, i.memo].filter(Boolean).join(' / '))}</td><td class="r">${fmtQty(i.qty)} ${esc(i.unit)}</td><td class="r">${yen(i.up)}</td><td class="r">${yen(i.amount)}</td></tr>`; });
+      });
+    });
+    h += `<tr class="tot"><td colspan="4" class="r">小計</td><td class="r">${yen(r.sub)}</td></tr>
+      <tr><td colspan="4" class="r">諸経費（${esc(settings.overheadRate)}%）</td><td class="r">${yen(r.oh)}</td></tr>`;
+    if (r.discount) h += `<tr><td colspan="4" class="r">値引き</td><td class="r">-${yen(r.discount)}</td></tr>`;
+    h += `<tr><td colspan="4" class="r">税抜合計</td><td class="r">${yen(r.pre)}</td></tr>
+      <tr><td colspan="4" class="r">消費税（${esc(settings.taxRate)}%）</td><td class="r">${yen(r.tax)}</td></tr>
+      <tr class="tot"><td colspan="4" class="r">合計（税込）</td><td class="r">${yen(r.total)}</td></tr></table>`;
+    const note = $('#f_note').value;
+    if (note) h += `<div class="note">${esc(note)}</div>`;
+    if (s.memo) h += `<div class="note"><strong>現調メモ：</strong>${esc(s.memo)}</div>`;
+    h += '</div>';
+    $('#sheet').innerHTML = h;
+  }
+  function doPrint() { buildSheet(); window.print(); }
+  window.addEventListener('beforeprint', buildSheet);
+
+  function copyText() {
+    const r = compute(), s = draft.site, L = [];
+    L.push(`【概算見積】${s.site || ''} ${s.cust ? s.cust + ' 様' : ''}`.trim());
+    if (s.date) L.push(`現調日：${s.date}`);
+    r.sections.forEach((sec) => {
+      L.push(`《${sec.title}》 ${yen(sec.sub)}`);
+      sec.groups.forEach((g) => { L.push(`■${g.name}`); g.items.forEach((i) => L.push(`・${i.name}${i.grade ? '（' + i.grade + '）' : ''} ${fmtQty(i.qty)}${i.unit} ${yen(i.amount)}${i.memo ? '　※' + i.memo : ''}`)); });
+    });
+    L.push(`小計 ${yen(r.sub)}`, `諸経費 ${yen(r.oh)}`);
+    if (r.discount) L.push(`値引き -${yen(r.discount)}`);
+    L.push(`消費税 ${yen(r.tax)}`, `合計（税込）${yen(r.total)}`, '', settings.company);
+    const t = L.join('\n');
+    const done = () => toast('コピーしました');
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, () => fallbackCopy(t, done));
+    else fallbackCopy(t, done);
+  }
+  function fallbackCopy(t, done) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { alert(t); } ta.remove(); }
+
+  // ---------- 設定タブ ----------
+  function renderSettings() {
+    $('#s_company').value = settings.company; $('#s_companyInfo').value = settings.companyInfo;
+    $('#s_ohView').textContent = settings.overheadRate + '%'; $('#s_taxView').textContent = settings.taxRate + '%';
+    $('#s_genView').textContent = BASE.generatedAt || '-';
+  }
+
+  // ---------- 画面切替など ----------
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach((p) => p.classList.toggle('active', p.id === 'page-' + name));
+    document.querySelectorAll('nav.bottom button').forEach((b) => b.classList.toggle('active', b.dataset.page === name));
+    if (name === 'est') refreshTotals();
+    window.scrollTo(0, 0);
+  }
+  let toastTimer;
+  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800); }
+
+  document.querySelectorAll('nav.bottom button').forEach((b) => b.addEventListener('click', () => showPage(b.dataset.page)));
+  $('#btnGoEst').addEventListener('click', () => showPage('est'));
+  $('#btnGoWork').addEventListener('click', () => showPage('in'));
+  $('#btnPrint').addEventListener('click', doPrint);
+  $('#btnPrintTop').addEventListener('click', doPrint);
+  $('#btnCopy').addEventListener('click', copyText);
+  $('#btnClear').addEventListener('click', () => {
+    if (!confirm('入力した物件情報・間取り・工事内容をすべて消して、新しい見積を始めますか？')) return;
+    draft = blankDraft(); saveDraft(); renderAll(); showPage('site'); toast('クリアしました');
+  });
+  $('#btnSaveSet').addEventListener('click', () => {
+    settings.company = $('#s_company').value.trim() || DEFAULT_SETTINGS.company;
+    settings.companyInfo = $('#s_companyInfo').value;
+    lsSet(LS.settings, { company: settings.company, companyInfo: settings.companyInfo }); refreshTotals(); toast('設定を保存しました');
+  });
+  function renderAll() { bindSite(); renderRoomTypes(); renderRooms(); renderIn(); renderOut(); renderOrder(); renderSettings(); refreshTotals(); }
+  renderAll();
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
