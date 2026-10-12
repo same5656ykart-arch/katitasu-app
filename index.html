@@ -227,19 +227,19 @@
 
     <!-- 中工事 -->
     <section class="page" id="page-in">
-      <div class="warn">単価は<strong>仮の目安</strong>です（すべて税込・お客様提示用。原価は含まれません）。</div>
+      <div class="warn">単価は<strong>仮の目安</strong>です（すべて税抜・お客様提示用）。</div>
       <div id="inCats"></div>
     </section>
 
     <!-- 外工事 -->
     <section class="page" id="page-out">
-      <div class="warn">単価は<strong>仮の目安</strong>です（すべて税込）。</div>
+      <div class="warn">単価は<strong>仮の目安</strong>です（すべて税抜）。</div>
       <div id="outCats"></div>
     </section>
 
     <!-- 発注物 -->
     <section class="page" id="page-order">
-      <div class="warn">単価は<strong>仮の目安</strong>です（すべて税込）。材料・外注・自社工事部など、発注するものをここに入れます。</div>
+      <div class="warn">単価は<strong>仮の目安</strong>です（すべて税抜）。材料・外注・自社工事部など、発注するものをここに入れます。</div>
       <div id="orderCats"></div>
     </section>
 
@@ -249,9 +249,11 @@
         <h2>見積内容</h2>
         <div id="sumWrap"></div>
         <div class="totals">
-          <div class="tr"><span>値引き（任意）</span><span><input id="f_discount" type="number" inputmode="numeric" min="0" step="1000" placeholder="0"></span></div>
+          <div class="tr"><span>小計（税抜）</span><span id="t_sub">¥0</span></div>
+          <div class="tr"><span>値引き（任意・税抜）</span><span><input id="f_discount" type="number" inputmode="numeric" min="0" step="1000" placeholder="0"></span></div>
+          <div class="tr"><span>消費税（<span id="t_taxRate"></span>%）</span><span id="t_tax">¥0</span></div>
           <div class="tr big"><span>合計（税込）</span><span id="t_total">¥0</span></div>
-          <div class="hint">※ 単価はすべて税込です。</div>
+          <div class="hint">※ 単価はすべて税抜です。</div>
           <div class="profit costonly" id="profitBox"></div>
         </div>
         <label class="f" style="margin-top:12px"><span>見積書に載せる備考</span><textarea id="f_note"></textarea></label>
@@ -277,16 +279,16 @@
       <div class="card">
         <h2>単価について</h2>
         <div class="hint">
-          表示される金額は<strong>お客様提示用の単価（税込）</strong>です。原価は暗号化されていて、合言葉を知っている管理者が画面上の「原価」ボタンを押したときだけ表示・編集できます。
+          表示される金額は<strong>お客様提示用の単価（税抜）</strong>です。原価は暗号化されていて、合言葉を知っている管理者が画面上の「原価」ボタンを押したときだけ表示・編集できます。
         </div>
         <table class="sum" style="margin-top:10px">
-          <tr><td>単価</td><td class="r">税込</td></tr>
+          <tr><td>単価</td><td class="r">税抜</td></tr><tr><td>消費税率</td><td class="r" id="s_taxView"></td></tr>
           <tr><td>単価データの生成日</td><td class="r" id="s_genView"></td></tr>
         </table>
       </div>
       <div class="card costonly" id="costMasterCard">
         <h2>原価マスター（管理者）</h2>
-        <div class="hint" style="margin-bottom:10px">原価を入れると、目標粗利率になる客出し単価（税込・100円単位切り上げ）が自動で入ります。客出しを手で直すとその項目は「手動」になり、自動計算されなくなります（「自動に戻す」で復帰）。</div>
+        <div class="hint" style="margin-bottom:10px">原価を入れると、目標粗利率になる客出し単価（税抜・100円単位切り上げ）が自動で入ります。客出しを手で直すとその項目は「手動」になり、自動計算されなくなります（「自動に戻す」で復帰）。</div>
         <div class="row2" style="align-items:end">
           <label class="f"><span>目標粗利率（%）</span><input id="cm_margin" type="number" inputmode="decimal" min="0" max="90" step="0.5"></label>
           <button class="btn sec" id="cm_recalc" type="button" style="margin-bottom:12px">全項目を再計算</button>
@@ -478,14 +480,17 @@
     if (outGroups.length) sections.push({ title: '外工事', groups: outGroups, sub: outSub });
     if (ordGroups.length) sections.push({ title: '発注物', groups: ordGroups, sub: ordSub });
     const sub = inSub + outSub + ordSub;
-    // 単価はすべて税込。合計 = 税込小計 − 値引き
+    // 単価はすべて税抜。税抜合計 = 小計 − 値引き、消費税を足して税込合計
     const discount = Number(draft.discount) || 0;
-    const total = Math.max(0, sub - discount);
-    // 原価モード用：原価合計・粗利
+    const pre = Math.max(0, sub - discount);
+    const taxRate = Number(settings.taxRate) || 0;
+    const tax = Math.round(pre * taxRate / 100);
+    const total = pre + tax;
+    // 原価モード用：原価合計・粗利（税抜同士で計算）
     let costTotal = 0, missing = 0;
     sections.forEach((sec) => sec.groups.forEach((g) => g.items.forEach((r) => { if (r.costAmount == null) { if (r.amount) missing++; } else costTotal += r.costAmount; })));
-    const profit = total - costTotal;
-    return { sections, inSub, outSub, ordSub, sub, discount, total, costTotal, missing, profit, marginRate: total > 0 ? profit / total * 100 : 0 };
+    const profit = pre - costTotal;
+    return { sections, inSub, outSub, ordSub, sub, discount, pre, taxRate, tax, total, costTotal, missing, profit, marginRate: pre > 0 ? profit / pre * 100 : 0 };
   }
   function roomLabel(room) {
     const rt = rtById(room.type); const tags = [];
@@ -673,10 +678,10 @@
   function refreshTotals() {
     const r = compute();
     $('#barTotal').textContent = yen(r.total);
-    $('#t_total').textContent = yen(r.total);
+    $('#t_total').textContent = yen(r.total); $('#t_sub').textContent = yen(r.sub); $('#t_tax').textContent = yen(r.tax); $('#t_taxRate').textContent = r.taxRate;
     const pb = $('#profitBox');
     if (costMode) {
-      pb.innerHTML = `<div class="tr"><span>原価合計</span><span>${yen(r.costTotal)}</span></div>
+      pb.innerHTML = `<div class="tr"><span>税抜合計</span><span>${yen(r.pre)}</span></div><div class="tr"><span>原価合計（税抜）</span><span>${yen(r.costTotal)}</span></div>
         <div class="tr big"><span>粗利額</span><span>${yen(r.profit)}</span></div>
         <div class="tr big"><span>粗利率</span><span>${fmtPct(r.marginRate)}%</span></div>
         ${r.missing ? `<div class="hint" style="color:var(--danger)">原価が未設定の項目が ${r.missing} 件あります（原価0として計算）</div>` : ''}`;
@@ -739,9 +744,11 @@
         g.items.forEach((i) => { h += `<tr><td>${esc(i.name)}</td><td>${esc([i.grade, i.memo].filter(Boolean).join(' / '))}</td><td class="r">${fmtQty(i.qty)} ${esc(i.unit)}</td><td class="r">${yen(i.up)}</td><td class="r">${yen(i.amount)}</td></tr>`; });
       });
     });
-    if (r.discount) h += `<tr><td colspan="4" class="r">小計</td><td class="r">${yen(r.sub)}</td></tr><tr><td colspan="4" class="r">値引き</td><td class="r">-${yen(r.discount)}</td></tr>`;
-    h += `<tr class="tot"><td colspan="4" class="r">合計（税込）</td><td class="r">${yen(r.total)}</td></tr></table>
-      <div class="note">※ 金額はすべて税込です。</div>`;
+    h += `<tr><td colspan="4" class="r">小計（税抜）</td><td class="r">${yen(r.sub)}</td></tr>`;
+    if (r.discount) h += `<tr><td colspan="4" class="r">値引き</td><td class="r">-${yen(r.discount)}</td></tr><tr><td colspan="4" class="r">税抜合計</td><td class="r">${yen(r.pre)}</td></tr>`;
+    h += `<tr><td colspan="4" class="r">消費税（${esc(r.taxRate)}%）</td><td class="r">${yen(r.tax)}</td></tr>
+      <tr class="tot"><td colspan="4" class="r">合計（税込）</td><td class="r">${yen(r.total)}</td></tr></table>
+      <div class="note">※ 単価・小計は税抜、合計は税込です。</div>`;
     const note = $('#f_note').value;
     if (note) h += `<div class="note">${esc(note)}</div>`;
     if (s.memo) h += `<div class="note"><strong>現調メモ：</strong>${esc(s.memo)}</div>`;
@@ -759,8 +766,9 @@
       L.push(`《${sec.title}》`);
       sec.groups.forEach((g) => { L.push(`■${g.name}`); g.items.forEach((i) => L.push(`・${i.name}${i.grade ? '（' + i.grade + '）' : ''} ${fmtQty(i.qty)}${i.unit} ${yen(i.amount)}${i.memo ? '　※' + i.memo : ''}`)); });
     });
-    if (r.discount) L.push(`小計 ${yen(r.sub)}`, `値引き -${yen(r.discount)}`);
-    L.push(`合計（税込）${yen(r.total)}`, '※金額はすべて税込', '', settings.company);
+    L.push(`小計（税抜）${yen(r.sub)}`);
+    if (r.discount) L.push(`値引き -${yen(r.discount)}`);
+    L.push(`消費税（${r.taxRate}%）${yen(r.tax)}`, `合計（税込）${yen(r.total)}`, '', settings.company);
     const t = L.join('\n');
     const done = () => toast('コピーしました');
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, () => fallbackCopy(t, done));
@@ -771,7 +779,7 @@
   // ---------- 設定タブ ----------
   function renderSettings() {
     $('#s_company').value = settings.company; $('#s_companyInfo').value = settings.companyInfo;
-    $('#s_genView').textContent = BASE.generatedAt || '-';
+    $('#s_genView').textContent = BASE.generatedAt || '-'; $('#s_taxView').textContent = (settings.taxRate || 0) + '%';
   }
 
   // ---------- 原価モード（暗号化された原価マスター） ----------
