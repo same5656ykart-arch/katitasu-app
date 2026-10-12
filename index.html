@@ -34,9 +34,9 @@
   header.top .logo { width: 40px; height: 40px; border-radius: 11px; flex: none; display: grid; place-items: center; font-weight: 900; font-size: 20px; color: #fff;
     background: linear-gradient(145deg, #ff9d3c, #e07b2a 60%, #b85a12); box-shadow: 0 3px 8px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.35); letter-spacing: -1px; }
   header.top .kicker { font-size: 10px; letter-spacing: .32em; font-weight: 700; color: #ffc87a; text-transform: uppercase; line-height: 1; }
-  header.top h1 { font-size: 18px; margin: 2px 0 0; font-weight: 900; letter-spacing: .02em; line-height: 1.15; text-shadow: 0 2px 6px rgba(0,0,0,.35); white-space: nowrap; }
+  header.top h1 { font-size: 16px; overflow: hidden; text-overflow: ellipsis; margin: 2px 0 0; font-weight: 900; letter-spacing: .02em; line-height: 1.15; text-shadow: 0 2px 6px rgba(0,0,0,.35); white-space: nowrap; }
   header.top .sub { font-size: 12px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  header.top .btn { position: relative; flex: none; }
+  header.top .btn { position: relative; flex: none; padding: 8px 10px; }
 
   main { padding: 16px 16px calc(var(--nav-h) + var(--total-h) + 24px + env(safe-area-inset-bottom)); max-width: 760px; margin: 0 auto; }
   .page { display: none; }
@@ -125,6 +125,25 @@
   nav.bottom button .ic { font-size: 20px; }
   nav.bottom button.active { color: var(--primary); font-weight: 700; }
 
+  /* 原価モード */
+  .costline { display: none; font-size: 12px; color: #b85a12; font-weight: 400; }
+  body.cost .costline { display: block; }
+  .costonly { display: none !important; }
+  body.cost .costonly { display: block !important; }
+  body.cost .costonly.inl { display: inline-block !important; }
+  #btnCost.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .cm { display: grid; grid-template-columns: 1fr 86px 86px 54px; gap: 6px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .cm input { padding: 6px 6px; text-align: right; font-size: 14px; }
+  .cm .g { font-size: 11px; color: var(--muted); }
+  .cm .pct { text-align: right; font-size: 12px; }
+  .cm .pct.manual { color: var(--accent); }
+  .cm .pct.low { color: var(--danger); font-weight: 700; }
+  .cm-head { display: grid; grid-template-columns: 1fr 86px 86px 54px; gap: 6px; font-size: 11px; color: var(--muted); padding: 4px 0; }
+  .cm-head span { text-align: right; } .cm-head span:first-child { text-align: left; }
+  .cm-cat { font-weight: 700; color: var(--primary); margin: 12px 0 2px; font-size: 13px; }
+  .profit { background: #fff6e8; border: 1px solid #f3cf9a; border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+  .profit .tr { display: flex; justify-content: space-between; padding: 3px 0; }
+  .profit .big { font-size: 18px; font-weight: 700; }
   .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h) + var(--total-h) + 20px); background: #333; color: #fff; padding: 10px 16px; border-radius: 999px; font-size: 14px; opacity: 0; transition: opacity .2s; z-index: 50; pointer-events: none; }
   .toast.show { opacity: 1; }
 
@@ -156,12 +175,23 @@
 <div id="app">
   <header class="top">
     <div class="brand"><div class="logo">¥</div><div style="min-width:0"><div class="kicker">Katitasu Estimate</div><h1>カチタス見積もりアプリ</h1><div class="sub" id="hdrSub">物件未入力</div></div></div>
-    <button class="btn sm sec" id="btnPrintTop" type="button">🖨 PDF</button>
+    <div style="display:flex;gap:6px;position:relative;flex:none">
+      <button class="btn sm sec" id="btnCost" type="button" title="原価を表示（合言葉が必要）">原価</button>
+      <button class="btn sm sec" id="btnPrintTop" type="button">🖨 PDF</button>
+    </div>
   </header>
 
   <main>
     <!-- 物件・間取り -->
     <section class="page active" id="page-site">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px"><h2 style="margin:0">見積の保存</h2><span class="hint" id="savedState"></span></div>
+        <div class="btn-row" style="margin-top:0">
+          <button class="btn" id="btnSave" type="button">💾 保存する</button>
+          <button class="btn danger" id="btnNew" type="button">🗑 クリア（新規）</button>
+        </div>
+        <div id="savedList" style="margin-top:10px"></div>
+      </div>
       <div class="card">
         <h2>物件・お客様</h2>
         <label class="f"><span>物件名</span><input id="f_site" placeholder="例：○○市△△町 戸建"></label>
@@ -222,6 +252,7 @@
           <div class="tr"><span>値引き（任意）</span><span><input id="f_discount" type="number" inputmode="numeric" min="0" step="1000" placeholder="0"></span></div>
           <div class="tr big"><span>合計（税込）</span><span id="t_total">¥0</span></div>
           <div class="hint">※ 単価はすべて税込です。</div>
+          <div class="profit costonly" id="profitBox"></div>
         </div>
         <label class="f" style="margin-top:12px"><span>見積書に載せる備考</span><textarea id="f_note"></textarea></label>
         <div class="btn-row">
@@ -229,7 +260,8 @@
           <button class="btn sec" id="btnCopy" type="button">📋 テキストをコピー</button>
         </div>
         <div class="btn-row">
-          <button class="btn danger" id="btnClear" type="button" style="grid-column: 1 / -1">新しい見積を作る（入力をクリア）</button>
+          <button class="btn sec" id="btnSave2" type="button">💾 保存する</button>
+          <button class="btn danger" id="btnClear" type="button">🗑 クリア（新規）</button>
         </div>
       </div>
     </section>
@@ -245,13 +277,32 @@
       <div class="card">
         <h2>単価について</h2>
         <div class="hint">
-          このアプリの金額は、管理者が管理する<strong>原価マスター</strong>から作られた<strong>お客様提示用の単価</strong>です。原価は含まれていません。<br>
-          単価はすべて<strong>税込</strong>です。アプリ内では変更できません。直したい場合は管理者に連絡してください。
+          表示される金額は<strong>お客様提示用の単価（税込）</strong>です。原価は暗号化されていて、合言葉を知っている管理者が画面上の「原価」ボタンを押したときだけ表示・編集できます。
         </div>
         <table class="sum" style="margin-top:10px">
           <tr><td>単価</td><td class="r">税込</td></tr>
           <tr><td>単価データの生成日</td><td class="r" id="s_genView"></td></tr>
         </table>
+      </div>
+      <div class="card costonly" id="costMasterCard">
+        <h2>原価マスター（管理者）</h2>
+        <div class="hint" style="margin-bottom:10px">原価を入れると、目標粗利率になる客出し単価（税込・100円単位切り上げ）が自動で入ります。客出しを手で直すとその項目は「手動」になり、自動計算されなくなります（「自動に戻す」で復帰）。</div>
+        <div class="row2" style="align-items:end">
+          <label class="f"><span>目標粗利率（%）</span><input id="cm_margin" type="number" inputmode="decimal" min="0" max="90" step="0.5"></label>
+          <button class="btn sec" id="cm_recalc" type="button" style="margin-bottom:12px">全項目を再計算</button>
+        </div>
+        <input id="cm_search" placeholder="項目名で絞り込み" style="margin-bottom:8px">
+        <div class="cm-head"><span>項目</span><span>原価</span><span>客出し</span><span>粗利</span></div>
+        <div id="costMaster"></div>
+        <div class="hint" style="margin:10px 0">※ 粗利率 = （客出し − 原価）÷ 客出し。編集内容はこの端末に自動保存されます。<br>※ 全員のアプリに反映するには「公開用ファイルを書き出す」で出たファイルを管理者（Claude）に渡してください。</div>
+        <div class="btn-row">
+          <button class="btn" id="cm_export" type="button">📤 公開用ファイルを書き出す</button>
+          <button class="btn sec" id="cm_copy" type="button">📋 公開用データをコピー</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn ghost" id="cm_pass" type="button">合言葉を変更</button>
+          <button class="btn danger" id="cm_reset" type="button">この端末の編集を消して公開版に戻す</button>
+        </div>
       </div>
     </section>
   </main>
@@ -277,7 +328,8 @@
 <script>
 (function () {
   'use strict';
-  const LS = { draft: 'katitasu3.draft4', settings: 'katitasu3.settings2' };
+  const LS = { draft: 'katitasu3.draft4', saved: 'katitasu3.saved', settings: 'katitasu3.settings2', priceOv: 'katitasu3.priceOv', costEnc: 'katitasu3.costEnc', margin: 'katitasu3.margin' };
+  const SS_PASS = 'katitasu3.pass';
   const $ = (s) => document.querySelector(s);
   const yen = (n) => '¥' + Math.round(n).toLocaleString('ja-JP');
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -299,7 +351,16 @@
 
   // ---------- 単価表 ----------
   const BASE = window.PRICE_TABLE || { items: {}, roomTypes: [], exterior: [] };
-  function buildPrices() { return JSON.parse(JSON.stringify(BASE)); }
+  function buildPrices() {
+    const t = JSON.parse(JSON.stringify(BASE));
+    const ov = lsGet(LS.priceOv) || {};
+    Object.keys(ov).forEach((id) => {
+      const it = t.items[id], o = ov[id]; if (!it) return;
+      if (it.grades && o.grades) it.grades.forEach((g) => { if (o.grades[g.name] != null) g.price = Number(o.grades[g.name]); });
+      else if (o.price != null) it.price = Number(o.price);
+    });
+    return t;
+  }
   let P = buildPrices();
   const RT = () => P.roomTypes;
   const rtById = (id) => RT().find((r) => r.id === id);
@@ -395,12 +456,12 @@
       itemIds.forEach((id) => {
         const it = P.items[id]; if (!it || !visible(it, room)) return;
         const l = draft.lines[scope + '|' + id]; if (!l || !l.on) return;
-        const qty = Number(l.qty) || 0, up = unitPrice(it, l);
-        rows.push({ name: it.name, grade: it.grades ? (l.grade || it.grades[0].name) : '', unit: it.unit, qty, up, amount: qty * up, memo: l.memo || '' });
+        const qty = Number(l.qty) || 0, up = unitPrice(it, l), cu = itemCost(it, id, l);
+        rows.push({ name: it.name, grade: it.grades ? (l.grade || it.grades[0].name) : '', unit: it.unit, qty, up, amount: qty * up, memo: l.memo || '', costUnit: cu, costAmount: cu == null ? null : qty * cu });
       });
       draft.custom.filter((x) => x.scope === scope).forEach((x) => {
-        const qty = Number(x.qty) || 0, up = Number(x.price) || 0;
-        rows.push({ name: x.name || '（名称未入力）', grade: '', unit: x.unit || '一式', qty, up, amount: qty * up, memo: x.memo || '' });
+        const qty = Number(x.qty) || 0, up = Number(x.price) || 0, cu = x.cost === '' || x.cost == null ? null : Number(x.cost);
+        rows.push({ name: x.name || '（名称未入力）', grade: '', unit: x.unit || '一式', qty, up, amount: qty * up, memo: x.memo || '', costUnit: cu, costAmount: cu == null ? null : qty * cu });
       });
       return rows;
     };
@@ -420,7 +481,11 @@
     // 単価はすべて税込。合計 = 税込小計 − 値引き
     const discount = Number(draft.discount) || 0;
     const total = Math.max(0, sub - discount);
-    return { sections, inSub, outSub, ordSub, sub, discount, total };
+    // 原価モード用：原価合計・粗利
+    let costTotal = 0, missing = 0;
+    sections.forEach((sec) => sec.groups.forEach((g) => g.items.forEach((r) => { if (r.costAmount == null) { if (r.amount) missing++; } else costTotal += r.costAmount; })));
+    const profit = total - costTotal;
+    return { sections, inSub, outSub, ordSub, sub, discount, total, costTotal, missing, profit, marginRate: total > 0 ? profit / total * 100 : 0 };
   }
   function roomLabel(room) {
     const rt = rtById(room.type); const tags = [];
@@ -550,7 +615,7 @@
     el.className = 'item' + (l.on ? ' on' : '');
     const gradeSel = it.grades ? `<select class="grade">${it.grades.map((g) => `<option value="${esc(g.name)}" ${g.name === l.grade ? 'selected' : ''}>${esc(g.name)} ${yen(g.price)}</option>`).join('')}</select>` : '';
     el.innerHTML = `
-      <div class="item-main"><span class="chk">✓</span><span class="nm">${esc(it.name)}</span><span class="pr"></span></div>
+      <div class="item-main"><span class="chk">✓</span><span class="nm">${esc(it.name)}<small class="costline"></small></span><span class="pr"></span></div>
       <div class="item-detail">
         <div class="ctl">${gradeSel}
           <span class="qty"><button type="button" class="m">−</button><input type="number" inputmode="decimal" min="0" step="any" value="${fmtQty(Number(l.qty) || 0)}"><button type="button" class="p">＋</button></span>
@@ -558,8 +623,11 @@
         <input class="memo" placeholder="メモ（場所・商品名など）" value="${esc(l.memo)}">
         ${it.note ? `<div class="hint">${esc(it.note)}</div>` : ''}
       </div>`;
-    const pr = el.querySelector('.pr'), line = el.querySelector('.line'), qtyIn = el.querySelector('.qty input');
-    const upd = () => { const up = unitPrice(it, l), qty = Number(l.qty) || 0; pr.textContent = l.on ? yen(up * qty) : yen(up) + '/' + it.unit; line.textContent = yen(up * qty); };
+    const pr = el.querySelector('.pr'), line = el.querySelector('.line'), qtyIn = el.querySelector('.qty input'), cl = el.querySelector('.costline');
+    const upd = () => {
+      const up = unitPrice(it, l), qty = Number(l.qty) || 0; pr.textContent = l.on ? yen(up * qty) : yen(up) + '/' + it.unit; line.textContent = yen(up * qty);
+      if (costMode) { const c = itemCost(it, id, l); cl.textContent = c == null ? '原価 未設定' : `原価 ${yen(c)}/${it.unit}　粗利 ${fmtPct(marginPct(up, c))}%`; }
+    };
     const changed = () => { upd(); saveDraft(); updCnt(); refreshTotals(); };
     const off = () => { if (l.on) { l.on = false; el.classList.remove('on'); upd(); } };
     el.querySelector('.item-main').addEventListener('click', () => { l.on = !l.on; el.classList.toggle('on', l.on); if (l.on && onTurnOn) onTurnOn(); changed(); });
@@ -585,13 +653,15 @@
           <span class="qty"><button type="button" class="m">−</button><input class="cqty" type="number" inputmode="decimal" min="0" step="any" value="${esc(x.qty)}"><button type="button" class="p">＋</button></span>
           <input class="cunit" placeholder="単位" value="${esc(x.unit)}" style="width:64px;padding:8px">
           <span class="line"></span></div>
+        <div class="ctl costonly" style="margin-top:6px"><span class="unit">原価</span><input class="ccost" type="number" inputmode="numeric" min="0" placeholder="原価単価" value="${x.cost ?? ''}" style="width:110px;text-align:right;padding:8px"><span class="unit">円</span><span class="line costline" style="display:inline"></span></div>
         <input class="memo" placeholder="メモ" value="${esc(x.memo)}">
       </div>`;
-    const line = el.querySelector('.line'), qtyIn = el.querySelector('.cqty');
-    const upd = () => { line.textContent = yen((Number(x.price) || 0) * (Number(x.qty) || 0)); };
+    const line = el.querySelector('.line'), qtyIn = el.querySelector('.cqty'), cl = el.querySelector('.ctl.costonly .costline');
+    const upd = () => { line.textContent = yen((Number(x.price) || 0) * (Number(x.qty) || 0)); const c = x.cost === '' || x.cost == null ? null : Number(x.cost); cl.textContent = c == null ? '' : `粗利 ${fmtPct(marginPct(Number(x.price) || 0, c))}%`; };
     const changed = () => { upd(); saveDraft(); updCnt(); refreshTotals(); };
     const bind = (sel, key, num) => el.querySelector(sel).addEventListener('input', (e) => { x[key] = num ? (e.target.value === '' ? 0 : Number(e.target.value)) : e.target.value; changed(); });
     bind('.cname', 'name'); bind('.cprice', 'price', true); bind('.cqty', 'qty', true); bind('.cunit', 'unit'); bind('.memo', 'memo');
+    el.querySelector('.ccost').addEventListener('input', (e) => { x.cost = e.target.value === '' ? null : Number(e.target.value); changed(); });
     el.querySelector('.m').addEventListener('click', () => { x.qty = Math.max(0, (Number(x.qty) || 0) - 1); qtyIn.value = x.qty; changed(); });
     el.querySelector('.p').addEventListener('click', () => { x.qty = (Number(x.qty) || 0) + 1; qtyIn.value = x.qty; changed(); });
     el.querySelector('.del').addEventListener('click', () => { draft.custom = draft.custom.filter((y) => y.id !== x.id); saveDraft(); rerender(); refreshTotals(); });
@@ -604,6 +674,13 @@
     const r = compute();
     $('#barTotal').textContent = yen(r.total);
     $('#t_total').textContent = yen(r.total);
+    const pb = $('#profitBox');
+    if (costMode) {
+      pb.innerHTML = `<div class="tr"><span>原価合計</span><span>${yen(r.costTotal)}</span></div>
+        <div class="tr big"><span>粗利額</span><span>${yen(r.profit)}</span></div>
+        <div class="tr big"><span>粗利率</span><span>${fmtPct(r.marginRate)}%</span></div>
+        ${r.missing ? `<div class="hint" style="color:var(--danger)">原価が未設定の項目が ${r.missing} 件あります（原価0として計算）</div>` : ''}`;
+    } else pb.innerHTML = '';
     const w = $('#sumWrap');
     if (!r.sections.length) { w.innerHTML = '<div class="hint">まだ工事が選ばれていません。「中工事」「外工事」「発注」タブで項目をONにしてください。</div>'; return; }
     let h = '<table class="sum"><tr><th>工事内容</th><th class="r">数量</th><th class="r">金額</th></tr>';
@@ -612,7 +689,8 @@
       s.groups.forEach((g) => {
         h += `<tr class="cat"><td colspan="3">${esc(g.name)}</td></tr>`;
         g.items.forEach((i) => {
-          h += `<tr><td>${esc(i.name)}${i.grade ? `<br><span class="hint">${esc(i.grade)}</span>` : ''}${i.memo ? `<br><span class="hint">${esc(i.memo)}</span>` : ''}</td><td class="r">${fmtQty(i.qty)}${esc(i.unit)}<br><span class="hint">@${yen(i.up)}</span></td><td class="r">${yen(i.amount)}</td></tr>`;
+          const cs = costMode ? `<br><span class="costline" style="display:block">${i.costAmount == null ? '原価 未設定' : '原価 ' + yen(i.costAmount) + '　粗利 ' + fmtPct(marginPct(i.amount, i.costAmount)) + '%'}</span>` : '';
+          h += `<tr><td>${esc(i.name)}${i.grade ? `<br><span class="hint">${esc(i.grade)}</span>` : ''}${i.memo ? `<br><span class="hint">${esc(i.memo)}</span>` : ''}</td><td class="r">${fmtQty(i.qty)}${esc(i.unit)}<br><span class="hint">@${yen(i.up)}</span></td><td class="r">${yen(i.amount)}${cs}</td></tr>`;
         });
       });
     });
@@ -696,6 +774,142 @@
     $('#s_genView').textContent = BASE.generatedAt || '-';
   }
 
+  // ---------- 原価モード（暗号化された原価マスター） ----------
+  const te = new TextEncoder(), td = new TextDecoder();
+  const b64 = (u8) => { let s = ''; u8.forEach((b) => { s += String.fromCharCode(b); }); return btoa(s); };
+  const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  async function deriveKey(pass, salt) {
+    const km = await crypto.subtle.importKey('raw', te.encode(pass), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' }, km, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  }
+  async function encryptJSON(obj, pass) {
+    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(pass, salt);
+    const data = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, te.encode(JSON.stringify(obj))));
+    return { v: 1, salt: b64(salt), iv: b64(iv), data: b64(data) };
+  }
+  async function decryptJSON(blob, pass) {
+    const key = await deriveKey(pass, unb64(blob.salt));
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(blob.iv) }, key, unb64(blob.data));
+    return JSON.parse(td.decode(plain));
+  }
+
+  let costMode = false, costs = null, passphrase = '';
+  try { passphrase = sessionStorage.getItem(SS_PASS) || ''; } catch (e) { /* 使えない環境 */ }
+  let marginTarget = Number(lsGet(LS.margin)) || Number(BASE.marginTarget) || 17;
+  const fmtPct = (p) => (Math.round(p * 10) / 10).toString();
+  const marginPct = (sell, cost) => sell > 0 ? (sell - cost) / sell * 100 : 0;
+  // 客出し = 原価 ÷ (1 − 粗利率)、100円単位に切り上げ
+  const calcSell = (cost) => Math.ceil(cost / (1 - marginTarget / 100) / 100) * 100;
+  function itemCost(it, id, line) {
+    if (!costs || !costs.items) return null;
+    const c = costs.items[id]; if (!c) return null;
+    if (it.grades) { const g = line ? (line.grade || it.grades[0].name) : it.grades[0].name; const v = c.grades && c.grades[g]; return v == null || v === '' ? null : Number(v); }
+    return c.cost == null || c.cost === '' ? null : Number(c.cost);
+  }
+  function isManual(id, grade) { const m = costs && costs.manual && costs.manual[id]; if (!m) return false; return grade ? !!(m.grades && m.grades[grade]) : !!m.manual; }
+  function setManual(id, grade, v) { costs.manual = costs.manual || {}; const m = costs.manual[id] = costs.manual[id] || {}; if (grade) { m.grades = m.grades || {}; m.grades[grade] = v; } else m.manual = v; }
+
+  async function loadCosts(pass) {
+    const blob = lsGet(LS.costEnc) || BASE.costEnc;
+    if (!blob) return { items: {}, manual: {}, fresh: true };
+    const o = await decryptJSON(blob, pass); o.items = o.items || {}; o.manual = o.manual || {}; return o;
+  }
+  async function toggleCost() {
+    if (costMode) { costMode = false; document.body.classList.remove('cost'); $('#btnCost').classList.remove('on'); $('#btnCost').textContent = '原価'; renderCostDependent(); return; }
+    if (!window.crypto || !crypto.subtle) { alert('この環境では原価モードを使えません（https で開いてください）'); return; }
+    if (!costs) {
+      const pass = passphrase || prompt('原価を表示します。合言葉を入力してください'); if (!pass) return;
+      try { costs = await loadCosts(pass); } catch (e) { alert('合言葉が違います'); passphrase = ''; try { sessionStorage.removeItem(SS_PASS); } catch (e2) {} return; }
+      passphrase = pass; try { sessionStorage.setItem(SS_PASS, pass); } catch (e) {}
+      if (costs.fresh) { delete costs.fresh; toast('原価データがまだありません。この合言葉で新しく作ります'); }
+    }
+    costMode = true; document.body.classList.add('cost'); $('#btnCost').classList.add('on'); $('#btnCost').textContent = '原価ON'; renderCostDependent();
+  }
+  function renderCostDependent() { renderIn(); renderOut(); renderOrder(); renderCostMaster(); refreshTotals(); }
+  $('#btnCost').addEventListener('click', toggleCost);
+
+  // 端末に保存（客出しは平文、原価は暗号化）
+  let persistTimer;
+  function persistMaster() {
+    const ov = {};
+    Object.keys(P.items).forEach((id) => { const it = P.items[id]; ov[id] = it.grades ? { grades: Object.fromEntries(it.grades.map((g) => [g.name, g.price])) } : { price: it.price }; });
+    lsSet(LS.priceOv, ov); lsSet(LS.margin, marginTarget);
+    clearTimeout(persistTimer);
+    persistTimer = setTimeout(async () => { try { lsSet(LS.costEnc, await encryptJSON(costs, passphrase)); } catch (e) { console.error(e); } }, 300);
+  }
+  function catOf() { // 項目がどの区分・グループに出るか（表示順用）
+    const m = {}; const add = (id, sec, name) => { if (!m[id]) m[id] = sec + '：' + name; };
+    RT().forEach((rt) => rt.items.forEach((id) => add(id, '中工事', rt.name)));
+    if (P.interiorCommon) P.interiorCommon.items.forEach((id) => add(id, '中工事', P.interiorCommon.name));
+    (P.exterior || []).forEach((g) => g.items.forEach((id) => add(id, '外工事', g.name)));
+    (P.orders || []).forEach((g) => g.items.forEach((id) => add(id, '発注物', g.name)));
+    return m;
+  }
+  function renderCostMaster() {
+    const w = $('#costMaster'); if (!w) return;
+    if (!costMode || !costs) { w.innerHTML = ''; return; }
+    $('#cm_margin').value = marginTarget;
+    const q = ($('#cm_search').value || '').trim();
+    const cats = catOf(); let lastCat = ''; const frag = document.createDocumentFragment();
+    const order = Object.keys(P.items).sort((a, b) => (cats[a] || 'zz').localeCompare(cats[b] || 'zz', 'ja'));
+    order.forEach((id) => {
+      const it = P.items[id]; if (q && !it.name.includes(q)) return;
+      const cat = cats[id] || 'その他';
+      if (cat !== lastCat) { const h = document.createElement('div'); h.className = 'cm-cat'; h.textContent = cat; frag.appendChild(h); lastCat = cat; }
+      const rows = it.grades ? it.grades.map((g) => ({ grade: g.name, getPrice: () => g.price, setPrice: (v) => { g.price = v; }, getCost: () => (costs.items[id] && costs.items[id].grades ? costs.items[id].grades[g.name] : null), setCost: (v) => { const c = costs.items[id] = costs.items[id] || {}; c.grades = c.grades || {}; c.grades[g.name] = v; } }))
+                             : [{ grade: '', getPrice: () => it.price, setPrice: (v) => { it.price = v; }, getCost: () => (costs.items[id] ? costs.items[id].cost : null), setCost: (v) => { const c = costs.items[id] = costs.items[id] || {}; c.cost = v; } }];
+      rows.forEach((r) => {
+        const el = document.createElement('div'); el.className = 'cm';
+        el.innerHTML = `<div>${esc(it.name)}<div class="g">${esc(it.unit)}${r.grade ? ' ・ ' + esc(r.grade) : ''}</div></div><input class="c" type="number" inputmode="numeric" min="0"><input class="s" type="number" inputmode="numeric" min="0"><div class="pct"></div>`;
+        const cIn = el.querySelector('.c'), sIn = el.querySelector('.s'), pct = el.querySelector('.pct');
+        const show = () => {
+          const c = r.getCost(), sp = r.getPrice(); cIn.value = c == null ? '' : c; sIn.value = sp;
+          const man = isManual(id, r.grade);
+          if (c == null) { pct.textContent = '—'; pct.className = 'pct'; }
+          else { const m = marginPct(sp, c); pct.innerHTML = fmtPct(m) + '%' + (man ? '<br><a href="#" class="auto" style="font-size:11px">自動に戻す</a>' : ''); pct.className = 'pct' + (man ? ' manual' : '') + (m < marginTarget - 0.05 ? ' low' : ''); }
+          const a = pct.querySelector('.auto'); if (a) a.addEventListener('click', (e) => { e.preventDefault(); setManual(id, r.grade, false); const cc = r.getCost(); if (cc != null) r.setPrice(calcSell(cc)); show(); persistMaster(); });
+        };
+        cIn.addEventListener('input', () => { const v = cIn.value === '' ? null : Number(cIn.value); r.setCost(v); if (v != null && !isManual(id, r.grade)) r.setPrice(calcSell(v)); show(); persistMaster(); });
+        sIn.addEventListener('input', () => { const v = Number(sIn.value) || 0; r.setPrice(v); setManual(id, r.grade, true); show(); persistMaster(); });
+        [cIn, sIn].forEach((inp) => inp.addEventListener('change', () => { renderIn(); renderOut(); renderOrder(); refreshTotals(); }));
+        show(); frag.appendChild(el);
+      });
+    });
+    w.innerHTML = ''; w.appendChild(frag);
+  }
+  $('#cm_search').addEventListener('input', renderCostMaster);
+  $('#cm_margin').addEventListener('change', () => { marginTarget = Number($('#cm_margin').value) || 17; persistMaster(); renderCostMaster(); });
+  $('#cm_recalc').addEventListener('click', () => {
+    if (!confirm(`手動設定を除くすべての項目の客出し単価を、粗利率 ${marginTarget}% で計算し直しますか？`)) return;
+    Object.keys(P.items).forEach((id) => { const it = P.items[id]; if (it.grades) it.grades.forEach((g) => { const c = costs.items[id] && costs.items[id].grades ? costs.items[id].grades[g.name] : null; if (c != null && c !== '' && !isManual(id, g.name)) g.price = calcSell(Number(c)); }); else { const c = costs.items[id] ? costs.items[id].cost : null; if (c != null && c !== '' && !isManual(id, '')) it.price = calcSell(Number(c)); } });
+    persistMaster(); renderCostDependent(); toast('再計算しました');
+  });
+  async function buildExport() {
+    const out = JSON.parse(JSON.stringify(P)); delete out.costEnc;
+    out.generatedAt = new Date().toISOString().slice(0, 10); out.marginTarget = marginTarget;
+    out.costEnc = await encryptJSON({ items: costs.items, manual: costs.manual }, passphrase);
+    return '// ============================================================\n// アプリ用 単価ファイル（客出し単価＋暗号化した原価）\n// ※ アプリの「原価マスター」画面から書き出したものです。手で直さないでください。\n// ※ 原価は合言葉がないと読めません。\n// 生成日: ' + out.generatedAt + '\n// ============================================================\nwindow.PRICE_TABLE = ' + JSON.stringify(out, null, 1) + ';\n';
+  }
+  $('#cm_export').addEventListener('click', async () => {
+    const js = await buildExport();
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([js], { type: 'text/javascript' })); a.download = 'prices.js'; document.body.appendChild(a); a.click(); a.remove();
+    toast('prices.js を書き出しました。管理者（Claude）に渡してください');
+  });
+  $('#cm_copy').addEventListener('click', async () => { const js = await buildExport(); fallbackCopy(js, () => toast('コピーしました。管理者（Claude）に貼り付けて渡してください')); });
+  $('#cm_pass').addEventListener('click', () => {
+    const p1 = prompt('新しい合言葉を入力してください（8文字以上推奨）'); if (!p1) return;
+    const p2 = prompt('確認のため、もう一度入力してください'); if (p1 !== p2) { alert('一致しませんでした'); return; }
+    passphrase = p1; try { sessionStorage.setItem(SS_PASS, p1); } catch (e) {} persistMaster(); toast('合言葉を変更しました。公開用ファイルを書き出して反映してください');
+  });
+  $('#cm_reset').addEventListener('click', async () => {
+    if (!confirm('この端末で編集した原価・客出し単価をすべて消して、公開されている単価データに戻しますか？')) return;
+    localStorage.removeItem(LS.priceOv); localStorage.removeItem(LS.costEnc); localStorage.removeItem(LS.margin);
+    P = buildPrices(); marginTarget = Number(BASE.marginTarget) || 17;
+    try { costs = await loadCosts(passphrase); } catch (e) { costs = null; costMode = false; document.body.classList.remove('cost'); $('#btnCost').classList.remove('on'); $('#btnCost').textContent = '原価'; alert('公開版の原価は今の合言葉では開けませんでした。合言葉を入れ直してください'); }
+    renderCostDependent(); toast('公開版に戻しました');
+  });
+
   // ---------- 画面切替など ----------
   function showPage(name) {
     document.querySelectorAll('.page').forEach((p) => p.classList.toggle('active', p.id === 'page-' + name));
@@ -712,16 +926,52 @@
   $('#btnPrint').addEventListener('click', doPrint);
   $('#btnPrintTop').addEventListener('click', doPrint);
   $('#btnCopy').addEventListener('click', copyText);
-  $('#btnClear').addEventListener('click', () => {
-    if (!confirm('入力した物件情報・間取り・工事内容をすべて消して、新しい見積を始めますか？')) return;
+  // ---------- 見積の保存・読み込み ----------
+  function savedList() { return lsGet(LS.saved) || []; }
+  function savedLabel(d) { return [d.site && d.site.site, d.site && d.site.cust && d.site.cust + ' 様'].filter(Boolean).join(' / ') || '（物件名なし）'; }
+  function saveEstimate() {
+    const list = savedList();
+    if (!draft.savedId) draft.savedId = 's' + Date.now();
+    const entry = { id: draft.savedId, name: savedLabel(draft), savedAt: new Date().toISOString(), draft: JSON.parse(JSON.stringify(draft)) };
+    const i = list.findIndex((x) => x.id === draft.savedId);
+    if (i >= 0) list[i] = entry; else list.unshift(entry);
+    lsSet(LS.saved, list); saveDraft(); renderSaved(); toast('保存しました：' + entry.name);
+  }
+  function clearEstimate() {
+    const dirty = Object.values(draft.lines).some((l) => l.on) || draft.custom.length || (draft.site && draft.site.site);
+    if (dirty && !confirm('今の入力内容を消して、新しい見積を始めますか？\n（保存していない内容は消えます）')) return;
     draft = blankDraft(); saveDraft(); renderAll(); showPage('site'); toast('クリアしました');
-  });
+  }
+  function renderSaved() {
+    const list = savedList(), w = $('#savedList');
+    const cur = list.find((x) => x.id === draft.savedId);
+    $('#savedState').textContent = cur ? '保存済：' + new Date(cur.savedAt).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '未保存（入力は端末に自動保存されます）';
+    if (!list.length) { w.innerHTML = '<div class="hint">保存した見積はまだありません。</div>'; return; }
+    w.innerHTML = '<div class="hint" style="margin-bottom:4px">保存した見積</div>' + list.map((x) => `<div class="rt" data-id="${esc(x.id)}"><span style="flex:1;min-width:0"><strong>${esc(x.name)}</strong>${x.id === draft.savedId ? ' <span class="cnt">編集中</span>' : ''}<br><span class="hint">${new Date(x.savedAt).toLocaleString('ja-JP')}</span></span><button class="btn sm sec open" type="button">開く</button><button class="del" type="button">削除</button></div>`).join('');
+    w.querySelectorAll('.rt').forEach((row) => {
+      const id = row.dataset.id;
+      row.querySelector('.open').addEventListener('click', () => {
+        const x = savedList().find((y) => y.id === id); if (!x) return;
+        if (x.id !== draft.savedId && !confirm(`「${x.name}」を開きますか？\n今の入力内容は置き換わります（保存していない内容は消えます）`)) return;
+        draft = Object.assign(blankDraft(), JSON.parse(JSON.stringify(x.draft))); saveDraft(); renderAll(); toast('開きました：' + x.name);
+      });
+      row.querySelector('.del').addEventListener('click', () => {
+        const x = savedList().find((y) => y.id === id); if (!x) return;
+        if (!confirm(`「${x.name}」の保存データを削除しますか？`)) return;
+        lsSet(LS.saved, savedList().filter((y) => y.id !== id)); if (draft.savedId === id) { delete draft.savedId; saveDraft(); } renderSaved(); toast('削除しました');
+      });
+    });
+  }
+  $('#btnSave').addEventListener('click', saveEstimate);
+  $('#btnSave2').addEventListener('click', saveEstimate);
+  $('#btnNew').addEventListener('click', clearEstimate);
+  $('#btnClear').addEventListener('click', clearEstimate);
   $('#btnSaveSet').addEventListener('click', () => {
     settings.company = $('#s_company').value.trim() || DEFAULT_SETTINGS.company;
     settings.companyInfo = $('#s_companyInfo').value;
     lsSet(LS.settings, { company: settings.company, companyInfo: settings.companyInfo }); refreshTotals(); toast('設定を保存しました');
   });
-  function renderAll() { bindSite(); renderRoomTypes(); renderRooms(); renderIn(); renderOut(); renderOrder(); renderSettings(); refreshTotals(); }
+  function renderAll() { bindSite(); renderRoomTypes(); renderRooms(); renderIn(); renderOut(); renderOrder(); renderSettings(); renderSaved(); refreshTotals(); }
   renderAll();
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
