@@ -63,6 +63,21 @@
   .tile.on .ts { color: var(--primary); font-weight: 700; }
   .tile.on::after { content: "✓"; position: absolute; top: 6px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 14px; display: grid; place-items: center; }
   .tile.add { border: 2px dashed #b9c4ce; background: transparent; box-shadow: none; color: var(--muted); }
+  .tile.common { grid-column: 1 / -1; flex-direction: row; justify-content: flex-start; gap: 14px; min-height: 84px; padding: 12px 18px; background: linear-gradient(135deg, #0b2a4a, #1f5f8b); color: #fff; }
+  .tile.common .tn { font-size: 20px; text-align: left; flex: 1; }
+  .tile.common .tn small { display: block; font-size: 12px; font-weight: 400; opacity: .9; }
+  .tile.common .ts { color: #ffc87a; font-size: 15px; font-weight: 700; }
+  .tile.common.on { border-color: var(--accent); }
+  .tile.common.on::after { background: var(--accent); }
+  .chipx .cp.unset, .amt.unset { color: var(--danger) !important; }
+  .chipx.on .cp.unset { color: #ffd2cc !important; }
+  .cnt-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 16px; }
+  .cnt-row:last-of-type { border-bottom: 0; }
+  .cnt-row .stepper button { width: 48px; height: 44px; font-size: 22px; background: #e4eef6; color: var(--primary); font-weight: 700; touch-action: manipulation; }
+  .cnt-row .stepper span { width: 44px; font-size: 18px; }
+  .areabox { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: #f1f7fc; border: 1px solid #cfe1ef; }
+  .areabox .big { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .areabox input { width: 96px; text-align: right; padding: 6px 8px; font-size: 18px; font-weight: 700; }
   .gcard { background: #fff; border-radius: var(--radius); margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); overflow: hidden; }
   .gcard-h { display: flex; align-items: center; gap: 10px; padding: 14px 16px 6px; }
   .gcard-h .gi { font-size: 24px; } .gcard-h .nm { flex: 1; font-size: 18px; font-weight: 800; }
@@ -271,6 +286,7 @@
           <div class="tr"><span>消費税（<span id="t_taxRate"></span>%）</span><span id="t_tax">¥0</span></div>
           <div class="tr big"><span>合計（税込）</span><span id="t_total">¥0</span></div>
           <div class="hint">※ 単価はすべて税抜です。</div>
+          <div class="hint" id="unsetNote" style="color:var(--danger)"></div>
           <div class="profit costonly" id="profitBox"></div>
         </div>
         <label class="f" style="margin-top:12px"><span>見積書に載せる備考</span><textarea id="f_note"></textarea></label>
@@ -363,7 +379,7 @@
 <script>
 (function () {
   'use strict';
-  const LS = { draft: 'katitasu3.draft6', saved: 'katitasu3.saved', settings: 'katitasu3.settings2', priceOv: 'katitasu3.priceOv', costEnc: 'katitasu3.costEnc', margin: 'katitasu3.margin' };
+  const LS = { draft: 'katitasu3.draft7', saved: 'katitasu3.saved', settings: 'katitasu3.settings2', priceOv: 'katitasu3.priceOv', costEnc: 'katitasu3.costEnc', margin: 'katitasu3.margin' };
   const SS_PASS = 'katitasu3.pass';
   const $ = (s) => document.querySelector(s);
   const yen = (n) => '¥' + Math.round(n).toLocaleString('ja-JP');
@@ -385,7 +401,7 @@
   let settings = Object.assign({}, DEFAULT_SETTINGS, { company: saved.company || DEFAULT_SETTINGS.company, companyInfo: saved.companyInfo != null ? saved.companyInfo : DEFAULT_SETTINGS.companyInfo });
 
   // ---------- 単価表 ----------
-  const BASE = window.PRICE_TABLE || { items: {}, whole: [], rooms: [], exterior: [] };
+  const BASE = window.PRICE_TABLE || { items: {}, common: [], whole: [], rooms: [], exterior: [] };
   function buildPrices() {
     const t = JSON.parse(JSON.stringify(BASE));
     const ov = lsGet(LS.priceOv) || {};
@@ -398,60 +414,90 @@
   }
   let P = buildPrices();
   // ---------- 見積データ ----------
-  // 家全体（設備・電気）のグループ、部屋の種類、外部工事のグループ
+  // 共通（家全体の内装）、家全体の設備・電気、部屋の種類、外部工事
+  const COMMON = 'common';
+  const commonParts = () => P.common || [];
+  const partItems = (parts) => parts.reduce((a, pt) => a.concat(pt.items || []), []);
   const wholeGroups = () => (P.whole || []).map((g) => ({ g, scope: 'wh_' + g.id }));
   const outGroups = () => (P.exterior || []).map((g) => ({ g, scope: 'ext_' + g.id }));
   const RT = () => P.rooms || [];
   const rtById = (id) => RT().find((r) => r.id === id);
-  const rtItems = (rt) => rt.parts.reduce((a, pt) => a.concat(pt.items), []);
-  const TATAMI = [1, 2, 3, 4.5, 6, 8, 10, 12, 15, 20];
-  function newRoom(rt, seq, n) { return { id: 'r' + seq, type: rt.id, name: rt.name + (n > 1 ? n : ''), tatami: rt.defaultTatami || 6 }; }
-  // 最初から並べておく部屋（指示書と同じ順）。2つ目以降は「＋」で足す
+  const rtItems = (rt) => partItems(rt.parts);
+  const MARU = '①②③④⑤⑥⑦⑧⑨';
+  // 洋室のように最初から複数ある部屋は ①②③、それ以外は 2つ目から番号
+  function roomName(rt, n) { return rt.name + ((rt.count || 1) > 1 ? (MARU[n - 1] || n) : (n > 1 ? n : '')); }
+  function newRoom(rt, seq, n) { return { id: 'r' + seq, type: rt.id, name: roomName(rt, n) }; }
+  // 間取り（ざっくりの延べ床を出すための数）
+  const DEFAULT_PLAN = { r1: 1, r2: 2, living: 2, toilet: 1, kitchen: 1, wash: 1, stairs: 1 };
   function blankDraft() {
-    let seq = 1; const rooms = RT().map((rt) => newRoom(rt, seq++, 1));
-    return { v: 6, site: {}, rooms, roomSeq: seq, lines: {}, custom: [], discount: 0, note: settings.defaultNote, open: {} };
+    let seq = 1; const rooms = [];
+    RT().forEach((rt) => { for (let i = 1; i <= (rt.count || 1); i++) rooms.push(newRoom(rt, seq++, i)); });
+    return { v: 7, site: {}, plan: Object.assign({}, DEFAULT_PLAN), areaManual: null, rooms, roomSeq: seq, lines: {}, custom: [], discount: 0, note: settings.defaultNote, open: {} };
   }
   let draft = Object.assign(blankDraft(), lsGet(LS.draft) || {});
   ['site', 'lines', 'open'].forEach((k) => { if (!draft[k]) draft[k] = {}; });
+  draft.plan = Object.assign({}, DEFAULT_PLAN, draft.plan || {});
   if (!Array.isArray(draft.custom)) draft.custom = [];
   if (!Array.isArray(draft.rooms)) draft.rooms = [];
   const saveDraft = () => lsSet(LS.draft, draft);
 
-  // 部屋の広さ（帖）から数量の目安を出す
-  // 床㎡ = 帖 × 1.62 / 天井・壁クロス㎡ = 床㎡ × 4 × 1.1 / 巾木・廻り縁 m = 部屋の周長
+  // ---------- 数量の目安 ----------
   const r1 = (n) => Math.round(n * 10) / 10;
-  const AREA_KEYS = ['floor', 'cloth', 'perim', 'tatami'];
+  const TATAMI_M2 = 1.62;
+  // ざっくりの延べ床：居室6帖、リビング=居室の個数×6帖、キッチン4.5帖、洗面室2帖、浴室2帖、トイレ1帖、階段2帖。玄関・廊下ぶんとして15%足す
+  function autoArea() {
+    const pl = draft.plan;
+    const t = (pl.r1 + pl.r2) * 6 + pl.living * 6 + pl.kitchen * 4.5 + pl.wash * 2 + 2 + pl.toilet * 1 + pl.stairs * 2;
+    return r1(t * 1.15 * TATAMI_M2);
+  }
+  // 家全体：クロス㎡ = 延べ床 × 4 × 1.1 / 巾木・廻り縁 m = 延べ床 × 1.3 / 箇所ものは 居室＋リビング の数
+  function house() {
+    const area = draft.areaManual != null ? Number(draft.areaManual) || 0 : autoArea();
+    return { area, floor: area, cloth: r1(area * 4 * 1.1), perim: r1(area * 1.3), rooms: draft.plan.r1 + draft.plan.r2 + 1 };
+  }
+  // 部屋：床㎡ = 帖 × 1.62（リビングは 居室の個数 × 6帖）
   function roomSize(room) {
-    const t = Number(room.tatami) || 0, floor = t * 1.62;
+    const rt = rtById(room.type), t = rt && rt.living ? draft.plan.living * 6 : (rt && rt.defaultTatami) || 6, floor = t * TATAMI_M2;
     return { floor: r1(floor), cloth: r1(floor * 4 * 1.1), perim: r1(4 * Math.sqrt(floor)), tatami: t };
   }
-  function defaultQty(it, room) {
-    if (it.qtyFrom && room) return roomSize(room)[it.qtyFrom] || 0;
+  const autoQty = (it, scope) => !!it.qtyFrom || (scope === COMMON && it.unit === '箇所');
+  function defaultQty(it, room, scope) {
+    const sz = scope === COMMON ? house() : room ? roomSize(room) : null;
+    if (it.qtyFrom && sz) return sz[it.qtyFrom] || 0;
+    if (scope === COMMON && it.unit === '箇所') return house().rooms;
     if (it.qtyDefault != null) return it.qtyDefault;
     return 1;
   }
-  function unitPrice(it, line) {
+  // 設備工事【フル】を選んでいるとき、部屋の「交換」の工事費は二重に足さない
+  //   inFull[id] === true → 0円（フルに含む） / { keep: 項目ID } → その項目の金額だけ足す（位置変えの増額など）
+  function fullOv(id) {
+    const k = P.inFull && P.inFull[id]; if (!k) return null;
+    const fl = draft.lines['wh_setsubi|sb_full']; if (!fl || !fl.on) return null;
+    return k === true ? { keep: null } : { keep: k.keep };
+  }
+  function unitPrice(it, line, id) {
+    const ov = id && fullOv(id);
+    if (ov) return ov.keep && P.items[ov.keep] ? Number(P.items[ov.keep].price) || 0 : 0;
     if (it.grades && it.grades.length) {
       const g = it.grades.find((x) => x.name === line.grade) || it.grades[0];
       return Number(g.price) || 0;
     }
     return Number(it.price) || 0;
   }
-  function getLine(key, it, room) {
+  function getLine(key, it, room, scope) {
     let l = draft.lines[key];
-    if (!l) l = draft.lines[key] = { on: false, qty: defaultQty(it, room), grade: it.grades ? it.grades[0].name : '', memo: '', touched: false };
+    if (!l) l = draft.lines[key] = { on: false, qty: defaultQty(it, room, scope), grade: it.grades ? it.grades[0].name : '', memo: '', touched: false };
     return l;
   }
-  // 帖数が変わったら、その部屋の手入力していない数量を更新
-  function refreshDefaultQty(room) {
+  // 間取りが変わったら、手入力していない数量を更新（共通と、広さが変わる部屋）
+  function refreshDefaultQty() {
     Object.keys(draft.lines).forEach((key) => {
-      const [sc, itemId] = key.split('|'); if (sc !== room.id) return;
-      const it = P.items[itemId]; const l = draft.lines[key];
-      if (!it || !l || l.touched || !it.qtyFrom) return;
-      l.qty = defaultQty(it, room);
+      const [sc, itemId] = key.split('|'); const it = P.items[itemId], l = draft.lines[key];
+      if (!it || !l || l.touched || !autoQty(it, sc)) return;
+      const room = draft.rooms.find((r) => r.id === sc);
+      if (sc === COMMON || room) l.qty = defaultQty(it, room, sc);
     });
   }
-  const roomLabel = (room) => { const rt = rtById(room.type); return room.name + (rt && rt.size ? '（' + room.tatami + '帖）' : ''); };
 
   // 計算
   function compute() {
@@ -461,8 +507,9 @@
       itemIds.forEach((id) => {
         const it = P.items[id]; if (!it) return;
         const l = draft.lines[scope + '|' + id]; if (!l || !l.on) return;
-        const qty = Number(l.qty) || 0, up = unitPrice(it, l), cu = itemCost(it, id, l);
-        rows.push({ name: it.name, grade: it.grades ? (l.grade || it.grades[0].name) : '', unit: it.unit, qty, up, amount: qty * up, memo: l.memo || '', costUnit: cu, costAmount: cu == null ? null : qty * cu });
+        const qty = Number(l.qty) || 0, up = unitPrice(it, l, id), cu = itemCost(it, id, l), ov = fullOv(id);
+        const memo = ov ? (ov.keep ? '設備工事フルに含む（増額分のみ）' : '設備工事フルに含む') : (up ? '' : '単価未設定（別途）');
+        rows.push({ name: it.name, grade: it.grades ? (l.grade || it.grades[0].name) : '', unit: it.unit, qty, up, amount: qty * up, memo, unset: !ov && !up, costUnit: cu, costAmount: cu == null ? null : qty * cu });
       });
       draft.custom.filter((x) => x.scope === scope).forEach((x) => {
         const qty = Number(x.qty) || 0, up = Number(x.price) || 0, cu = x.cost === '' || x.cost == null ? null : Number(x.cost);
@@ -470,12 +517,13 @@
       });
       return rows;
     };
-    const collect = (list) => { const out = []; list.forEach(({ g, scope }) => { const rows = sumGroup(scope, g.items); if (rows.length) out.push({ name: g.name, items: rows }); }); return out; };
-    // 内部工事：部屋ごと（指示書の並び）→ 家全体
+    // 内部工事：部屋ごと → 共通 → 設備・電気
     const inG = [];
-    draft.rooms.forEach((room) => { const rt = rtById(room.type); if (!rt) return; const rows = sumGroup(room.id, rtItems(rt)); if (rows.length) inG.push({ name: roomLabel(room), items: rows }); });
-    collect(wholeGroups()).forEach((x) => inG.push({ name: '家全体：' + x.name, items: x.items }));
-    const outG = collect(outGroups());
+    draft.rooms.forEach((room) => { const rt = rtById(room.type); if (!rt) return; const rows = sumGroup(room.id, rtItems(rt)); if (rows.length) inG.push({ name: room.name, items: rows }); });
+    const cm = sumGroup(COMMON, partItems(commonParts())); if (cm.length) inG.push({ name: '共通（家全体）', items: cm });
+    wholeGroups().forEach(({ g, scope }) => { const rows = sumGroup(scope, g.items); if (rows.length) inG.push({ name: '共通：' + g.name, items: rows }); });
+    const outG = [];
+    outGroups().forEach(({ g, scope }) => { const rows = sumGroup(scope, g.items); if (rows.length) outG.push({ name: g.name, items: rows }); });
     const tot = (gs) => gs.reduce((a, g) => a + g.items.reduce((b, r) => b + r.amount, 0), 0);
     const inSub = tot(inG), outSub = tot(outG);
     if (inG.length) sections.push({ title: '内部工事', groups: inG, sub: inSub });
@@ -488,17 +536,17 @@
     const tax = Math.round(pre * taxRate / 100);
     const total = pre + tax;
     // 原価モード用：原価合計・粗利（税抜同士で計算）
-    let costTotal = 0, missing = 0;
-    sections.forEach((sec) => sec.groups.forEach((g) => g.items.forEach((r) => { if (r.costAmount == null) { if (r.amount) missing++; } else costTotal += r.costAmount; })));
+    let costTotal = 0, missing = 0, unset = 0;
+    sections.forEach((sec) => sec.groups.forEach((g) => g.items.forEach((r) => { if (r.unset) unset++; if (r.costAmount == null) { if (r.amount) missing++; } else costTotal += r.costAmount; })));
     const profit = pre - costTotal;
-    return { sections, inSub, outSub, sub, discount, pre, taxRate, tax, total, costTotal, missing, profit, marginRate: pre > 0 ? profit / pre * 100 : 0 };
+    return { sections, inSub, outSub, sub, discount, pre, taxRate, tax, total, costTotal, missing, unset, profit, marginRate: pre > 0 ? profit / pre * 100 : 0 };
   }
 
   // ---------- 工事タブ（内部・外部） ----------
-  let currentRoom = null; // 開いている部屋の id
+  let currentRoom = null; // 開いている部屋の id（'common' は共通）
   function scopeStat(scope, itemIds) {
     let n = 0, amt = 0;
-    itemIds.forEach((id) => { const it = P.items[id], l = draft.lines[scope + '|' + id]; if (it && l && l.on) { n++; amt += (Number(l.qty) || 0) * unitPrice(it, l); } });
+    itemIds.forEach((id) => { const it = P.items[id], l = draft.lines[scope + '|' + id]; if (it && l && l.on) { n++; amt += (Number(l.qty) || 0) * unitPrice(it, l, id); } });
     draft.custom.filter((x) => x.scope === scope).forEach((x) => { n++; amt += (Number(x.qty) || 0) * (Number(x.price) || 0); });
     return { n, amt };
   }
@@ -510,16 +558,26 @@
   // 【フル】があるグループは「【フル】」と「個別に選ぶ（たたんである）」に分ける
   const wholeParts = (g) => g.full ? [{ items: [g.full], big: true }, { name: '個別に選ぶ', fold: true, items: g.items.filter((i) => i !== g.full) }] : [{ items: g.items, exclusive: g.exclusive }];
 
+  // 共通の「全部屋まとめて」ボタン：その項目を持つ部屋すべてに入れる／外す
+  const applyTargets = (item) => { const out = []; draft.rooms.forEach((room) => { const rt = rtById(room.type); if (!rt) return; rt.parts.forEach((pt) => { if (!pt.noApply && (pt.items || []).includes(item)) out.push({ room, pt }); }); }); return out; };
+  const applyIsOn = (item) => { const ts = applyTargets(item); return ts.length > 0 && ts.every(({ room }) => { const l = draft.lines[room.id + '|' + item]; return l && l.on; }); };
+  function applyToRooms(item, on) {
+    applyTargets(item).forEach(({ room, pt }) => {
+      if (on && pt.exclusive) pt.items.forEach((o) => { const l = draft.lines[room.id + '|' + o]; if (l) l.on = false; });
+      getLine(room.id + '|' + item, P.items[item], room, room.id).on = on;
+    });
+  }
+
   // 部位ごとにボタンを並べる。タップでON/OFF。ONにしたものだけ、下に数量の行が出る
-  // parts: [{ name?, items, exclusive?, fold?, big? }]  opts: { full, fullKeeps }
+  // parts: [{ name?, items, labels?, exclusive?, fold?, big?, apply? }]  opts: { full, fullKeeps }
   function partsEl(scope, parts, room, opts, onChange) {
     opts = opts || {}; const keeps = opts.fullKeeps || [];
     const wrap = document.createElement('div');
     const reg = {};
     const offOthers = (ids, keep) => ids.forEach((o) => { if (!keep(o) && reg[o]) reg[o].off(); });
     parts.forEach((pt) => {
-      const ids = pt.items.filter((id) => P.items[id]); if (!ids.length) return;
-      // ボタンの名前は（　）の中を省いて短く。省くと同じ名前になるときは元の名前
+      const ids = (pt.items || []).filter((id) => P.items[id]); if (!ids.length && !pt.apply) return;
+      // ボタンの名前：指定があればそれ。なければ（　）の中を省いて短く（同じ名前になるときは元の名前）
       const stripped = ids.map((id) => P.items[id].name.replace(/（.*?）/g, '').trim());
       const foldKey = scope + '#' + (pt.name || '');
       const anyOn = ids.some((id) => { const l = draft.lines[scope + '|' + id]; return l && l.on; });
@@ -528,19 +586,27 @@
       sec.innerHTML = (pt.name ? `<div class="part-h">${esc(pt.name)}${pt.exclusive ? '<small>どれか1つ</small>' : ''}${pt.fold ? '<span class="chev">▾</span>' : ''}</div>` : '') + '<div class="part-b"><div class="chipsx"></div><div class="sels"></div></div>';
       if (pt.fold) sec.querySelector('.part-h').addEventListener('click', () => { sec.classList.toggle('folded'); draft.open[foldKey] = !sec.classList.contains('folded'); saveDraft(); });
       const chips = sec.querySelector('.chipsx'), sels = sec.querySelector('.sels');
+      (pt.apply || []).forEach((ap) => {
+        const on = applyIsOn(ap.item), chip = document.createElement('button'); chip.type = 'button'; chip.className = 'chipx' + (on ? ' on' : '');
+        chip.innerHTML = `<span class="cn">${esc(ap.label)}</span><span class="cp">全部屋に入れる</span>`;
+        chip.addEventListener('click', () => { applyToRooms(ap.item, !on); saveDraft(); renderIn(); refreshTotals(); toast(on ? '全部屋から外しました' : `全部屋を「${ap.label}」にしました（部屋ごとに変えられます）`); });
+        chips.appendChild(chip);
+      });
       ids.forEach((id, i) => {
-        const it = P.items[id], l = getLine(scope + '|' + id, it, room);
-        const label = stripped[i] && stripped.filter((x) => x === stripped[i]).length === 1 ? stripped[i] : it.name;
-        const isArea = room && AREA_KEYS.includes(it.qtyFrom), counted = it.unit !== '一式';
+        const it = P.items[id], l = getLine(scope + '|' + id, it, room, scope);
+        const label = (pt.labels && pt.labels[id]) || (stripped[i] && stripped.filter((x) => x === stripped[i]).length === 1 ? stripped[i] : it.name);
+        const isArea = autoQty(it, scope) && (room || scope === COMMON), counted = it.unit !== '一式';
         const chip = document.createElement('button'); chip.type = 'button'; chip.className = 'chipx' + (pt.big ? ' big' : '');
         chip.innerHTML = `<span class="cn">${esc(label)}</span><span class="cp"></span>`;
         const sel = document.createElement('div'); sel.className = 'sel';
         const upd = () => {
-          const up = unitPrice(it, l), qty = Number(l.qty) || 0;
-          chip.querySelector('.cp').textContent = yen(up) + (counted ? '/' + it.unit : '');
-          const amt = sel.querySelector('.amt'); if (amt) amt.textContent = yen(up * qty);
+          const up = unitPrice(it, l, id), qty = Number(l.qty) || 0, ov = fullOv(id);
+          const cp = chip.querySelector('.cp');
+          cp.textContent = ov ? (up ? '増額分 ' + yen(up) : '設備フルに含む') : up ? yen(up) + (counted ? '/' + it.unit : '') : '単価未設定';
+          cp.classList.toggle('unset', !ov && !up);
+          const amt = sel.querySelector('.amt'); if (amt) { amt.textContent = ov && !up ? 'フルに含む' : up ? yen(up * qty) : '単価未設定'; amt.classList.toggle('unset', !ov && !up); }
           const cl = sel.querySelector('.costline');
-          if (cl && costMode) { const c = itemCost(it, id, l); const cn = costs && costs.items[id] && costs.items[id].note; cl.textContent = c == null ? '原価 未設定' : `原価 ${yen(c)}${counted ? '/' + it.unit : ''}　粗利 ${fmtPct(marginPct(up, c))}%` + (cn ? `（${cn}）` : ''); }
+          if (cl && costMode) { const c = itemCost(it, id, l); const cn = costs && costs.items[id] && costs.items[id].note; cl.textContent = ov ? '' : c == null ? '原価 未設定' : `原価 ${yen(c)}${counted ? '/' + it.unit : ''}　粗利 ${fmtPct(marginPct(up, c))}%` + (cn ? `（${cn}）` : ''); }
         };
         const changed = () => { upd(); saveDraft(); if (onChange) onChange(); refreshTotals(); };
         const build = () => {
@@ -550,7 +616,7 @@
           const gradeSel = it.grades ? `<span class="seg grade">${it.grades.map((g) => `<button type="button" data-v="${esc(g.name)}" class="${g.name === l.grade ? 'on' : ''}">${esc(g.name)}<small>${yen(g.price)}</small></button>`).join('')}</span>` : '';
           sel.innerHTML = `<div class="sl1"><span>${esc(it.name)}</span><span class="amt"></span></div>${gradeSel}
             ${counted ? `<div class="sl2"><span class="qty"><button type="button" class="m">−</button><input type="number" inputmode="decimal" min="0" step="any" value="${fmtQty(Number(l.qty) || 0)}"><button type="button" class="p">＋</button></span><span class="unit">${esc(it.unit)}</span></div>` : ''}
-            ${isArea ? `<div class="hint area">${l.touched ? '' : esc(room.tatami + '帖からの目安です（直せます）')}</div>` : ''}
+            ${isArea ? `<div class="hint area">${l.touched ? '' : (scope === COMMON ? '間取りからの目安です（直せます）' : '部屋の広さからの目安です（直せます）')}</div>` : ''}
             ${it.note ? `<div class="hint">${esc(it.note)}</div>` : ''}<small class="costline"></small>`;
           const qtyIn = sel.querySelector('.qty input');
           const touch = () => { l.touched = true; const ar = sel.querySelector('.area'); if (ar) ar.textContent = ''; };
@@ -580,11 +646,11 @@
     });
     return wrap;
   }
-  // グループ1つ分のカード（家全体の設備・電気、外部工事）
+  // グループ1つ分のカード
   function groupCard(scope, title, icon, note, parts, room, opts) {
-    const itemIds = parts.reduce((a, pt) => a.concat(pt.items), []);
+    const itemIds = partItems(parts);
     const card = document.createElement('div'); card.className = 'gcard'; card.dataset.scope = scope;
-    card.innerHTML = `${title ? `<div class="gcard-h"><span class="gi">${icon || ''}</span><span class="nm">${esc(title)}</span><span class="cnt"></span></div>` : ''}${note ? `<div class="cat-note hint">${esc(note)}</div>` : ''}`;
+    card.innerHTML = `${title ? `<div class="gcard-h"><span class="gi">${icon || ''}</span><span class="nm">${esc(title)}</span><span class="cnt"></span></div>` : ''}${note ? `<div class="cat-note hint"${title ? '' : ' style="padding-top:12px"'}>${esc(note)}</div>` : ''}`;
     const updCnt = () => { const c = card.querySelector('.cnt'); if (!c) return; const st = scopeStat(scope, itemIds); c.textContent = st.n ? `${st.n}件 ${yen(st.amt)}` : ''; c.style.display = st.n ? '' : 'none'; };
     card.appendChild(partsEl(scope, parts, room, opts, updCnt));
     draft.custom.filter((x) => x.scope === scope).forEach((x) => card.appendChild(renderCustom(x, updCnt, () => rerenderScope(scope))));
@@ -598,16 +664,24 @@
     updCnt();
     return card;
   }
+  function commonStat() {
+    const st = scopeStat(COMMON, partItems(commonParts()));
+    wholeGroups().forEach(({ g, scope }) => { const x = scopeStat(scope, g.items); st.n += x.n; st.amt += x.amt; });
+    return st;
+  }
   function renderIn() {
     const w = $('#inCats'); w.innerHTML = '';
-    const h = (t) => { const d = document.createElement('div'); d.className = 'sec-h'; d.textContent = t; w.appendChild(d); };
-    h('① 部屋をタップ');
     const grid = document.createElement('div'); grid.className = 'tiles';
+    const cs = commonStat();
+    const ct = document.createElement('button'); ct.type = 'button'; ct.className = 'tile common' + (cs.n ? ' on' : '');
+    ct.innerHTML = `<span class="ti">🏠</span><span class="tn">共通<small>クロス・床・建具・巾木・設備・電気</small></span><span class="ts">${cs.n ? yen(cs.amt) : ''}</span>`;
+    ct.addEventListener('click', () => openRoom(COMMON));
+    grid.appendChild(ct);
     draft.rooms.forEach((room) => {
       const rt = rtById(room.type); if (!rt) return;
       const st = scopeStat(room.id, rtItems(rt));
       const t = document.createElement('button'); t.type = 'button'; t.className = 'tile' + (st.n ? ' on' : '');
-      t.innerHTML = `<span class="ti">${rt.icon || ''}</span><span class="tn">${esc(room.name)}</span><span class="ts">${st.n ? yen(st.amt) : ''}</span>`;
+      t.innerHTML = `<span class="ti">${rt.icon || ''}</span><span class="tn">${esc(room.name)}</span><span class="ts">${st.n ? (st.amt ? yen(st.amt) : st.n + '件') : ''}</span>`;
       t.addEventListener('click', () => openRoom(room.id));
       grid.appendChild(t);
     });
@@ -615,7 +689,7 @@
     at.innerHTML = '<span class="ti">＋</span><span class="tn">部屋を足す</span><span class="ts"></span>';
     grid.appendChild(at); w.appendChild(grid);
     const add = document.createElement('div'); add.className = 'addroom'; add.style.display = 'none';
-    add.innerHTML = `<div class="hint" style="margin-bottom:8px">足す部屋を選んでください（2つ目の洋室・2階トイレなど）</div><div class="tchips">${RT().map((rt) => `<button type="button" data-t="${esc(rt.id)}">${rt.icon || ''} ${esc(rt.name)}</button>`).join('')}</div>`;
+    add.innerHTML = `<div class="hint" style="margin-bottom:8px">足す部屋を選んでください（2階トイレ・4つ目の洋室など）</div><div class="tchips">${RT().map((rt) => `<button type="button" data-t="${esc(rt.id)}">${rt.icon || ''} ${esc(rt.name)}</button>`).join('')}</div>`;
     at.addEventListener('click', () => { add.style.display = add.style.display === 'none' ? '' : 'none'; });
     add.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
       const rt = rtById(b.dataset.t), n = draft.rooms.filter((r) => r.type === rt.id).length + 1;
@@ -626,8 +700,6 @@
       saveDraft(); openRoom(room.id); toast(room.name + ' を追加しました');
     }));
     w.appendChild(add);
-    h('② 家全体（設備・電気）');
-    wholeGroups().forEach(({ g, scope }) => w.appendChild(groupCard(scope, g.name, g.icon, g.note, wholeParts(g), null, { full: g.full, fullKeeps: g.fullKeeps })));
     if (currentRoom) renderRoomPage();
   }
   function renderOut() {
@@ -637,26 +709,54 @@
   // ---------- 部屋の画面 ----------
   function openRoom(id) { currentRoom = id; renderRoomPage(); showPage('room'); }
   function closeRoom() { currentRoom = null; renderIn(); showPage('in'); }
+  const backBtn = (w) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'back'; b.textContent = '‹ 一覧へ戻る'; b.addEventListener('click', closeRoom); w.appendChild(b); };
+  const okBtn = (w) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.style.margin = '4px 0 14px'; b.textContent = '✓ OK（一覧へ戻る）'; b.addEventListener('click', closeRoom); w.appendChild(b); };
+  // ＋－で数を選ぶ行
+  function counterRow(label, get, set, min) {
+    const row = document.createElement('div'); row.className = 'cnt-row';
+    row.innerHTML = `<span>${esc(label)}</span><span class="stepper"><button type="button" class="m">−</button><span>${get()}</span><button type="button" class="p">＋</button></span>`;
+    const step = (d) => { set(Math.max(min || 0, Math.min(9, get() + d))); refreshDefaultQty(); saveDraft(); renderRoomPage(); refreshTotals(); };
+    row.querySelector('.m').addEventListener('click', () => step(-1)); row.querySelector('.p').addEventListener('click', () => step(1));
+    return row;
+  }
+  const PLAN_ROWS = [['r1', '1階の居室'], ['r2', '2階の居室'], ['living', 'リビング（居室何個分？）'], ['toilet', 'トイレ'], ['kitchen', 'キッチン'], ['wash', '洗面室'], ['stairs', '階段']];
+  function renderCommonPage(w) {
+    backBtn(w);
+    const tt = document.createElement('div'); tt.className = 'room-title'; tt.innerHTML = '<span class="gi">🏠</span><span>共通（家全体）</span>'; w.appendChild(tt);
+    // 間取り → ざっくりの延べ床
+    const pc = document.createElement('div'); pc.className = 'gcard'; pc.style.padding = '12px 16px';
+    pc.innerHTML = '<div style="font-size:18px;font-weight:800;margin-bottom:2px">① 間取りをタップ</div><div class="hint" style="margin-bottom:6px">数を入れると、ざっくりの延べ床とクロスの量が出ます</div>';
+    PLAN_ROWS.forEach(([k, label]) => pc.appendChild(counterRow(label, () => draft.plan[k], (v) => { draft.plan[k] = v; })));
+    const h = house(), manual = draft.areaManual != null;
+    const ab = document.createElement('div'); ab.className = 'areabox';
+    ab.innerHTML = `<div class="big">延べ床 <input type="number" inputmode="decimal" min="0" step="any" value="${h.area}"> ㎡<span class="hint">（約${r1(h.area / 3.3)}坪）</span></div>
+      <div style="margin-top:4px">クロス <strong>${h.cloth}㎡</strong> <span class="hint">＝ 延べ床 × 4 × 1.1</span></div>
+      <div class="hint" style="margin-top:4px">${manual ? '延べ床を手で直しています。<a href="#" class="auto">自動に戻す</a>' : '間取りからの目安です。分かるときは数字を直せます'}</div>`;
+    ab.querySelector('input').addEventListener('change', (e) => { draft.areaManual = e.target.value === '' ? null : Number(e.target.value); refreshDefaultQty(); saveDraft(); renderRoomPage(); refreshTotals(); });
+    const au = ab.querySelector('.auto'); if (au) au.addEventListener('click', (e) => { e.preventDefault(); draft.areaManual = null; refreshDefaultQty(); saveDraft(); renderRoomPage(); refreshTotals(); });
+    pc.appendChild(ab); w.appendChild(pc);
+    const t2 = document.createElement('div'); t2.className = 'sec-h'; t2.textContent = '② 家全体の内装（押すと選べます）'; w.appendChild(t2);
+    w.appendChild(groupCard(COMMON, '', '', '', commonParts(), null, null));
+    const t3 = document.createElement('div'); t3.className = 'sec-h'; t3.textContent = '③ 設備・電気'; w.appendChild(t3);
+    wholeGroups().forEach(({ g, scope }) => w.appendChild(groupCard(scope, g.name, g.icon, g.note, wholeParts(g), null, { full: g.full, fullKeeps: g.fullKeeps })));
+    okBtn(w);
+  }
   function renderRoomPage() {
     const w = $('#roomWrap'); w.innerHTML = '';
+    if (currentRoom === COMMON) { renderCommonPage(w); return; }
     const room = draft.rooms.find((r) => r.id === currentRoom); if (!room) return;
     const rt = rtById(room.type), first = draft.rooms.find((r) => r.type === room.type) === room;
-    const top = document.createElement('div');
-    top.innerHTML = `<button class="back" type="button">‹ 部屋の一覧へ</button>
-      <div class="room-title"><span class="gi">${rt.icon || ''}</span><span class="rt-name">${esc(room.name)}</span></div>`;
-    top.querySelector('.back').addEventListener('click', closeRoom);
-    w.appendChild(top);
-    if (rt.size) {
-      const set = document.createElement('div'); set.className = 'gcard'; set.style.padding = '12px 16px';
-      set.innerHTML = `<div class="lbl hint" style="margin-bottom:6px">広さ（帖）をタップ　※床・クロスの数量に使います</div><div class="tchips">${TATAMI.map((t) => `<button type="button" data-v="${t}" class="${Number(room.tatami) === t ? 'on' : ''}">${t}</button>`).join('')}</div>`;
-      set.querySelectorAll('.tchips button').forEach((b) => b.addEventListener('click', () => { room.tatami = Number(b.dataset.v); refreshDefaultQty(room); saveDraft(); renderRoomPage(); refreshTotals(); }));
+    backBtn(w);
+    const tt = document.createElement('div'); tt.className = 'room-title'; tt.innerHTML = `<span class="gi">${rt.icon || ''}</span><span class="rt-name">${esc(room.name)}</span>`; w.appendChild(tt);
+    if (rt.living) {
+      const set = document.createElement('div'); set.className = 'gcard'; set.style.padding = '6px 16px';
+      set.appendChild(counterRow('大きさ（居室何個分？）', () => draft.plan.living, (v) => { draft.plan.living = v; }, 1));
       w.appendChild(set);
     }
     w.appendChild(groupCard(room.id, '', '', rt.note, rt.parts, room, null));
-    const foot = document.createElement('div');
-    foot.innerHTML = `<button class="btn" type="button" style="margin:4px 0 14px">✓ この部屋はOK（一覧へ戻る）</button>
-      <div class="gcard" style="padding:12px 16px"><div class="hint" style="margin-bottom:6px">部屋の名前（例：2階洋室）</div><div class="rn" style="display:flex;gap:8px;align-items:center"><input class="rname" value="${esc(room.name)}" style="flex:1">${first ? '' : '<button type="button" class="del">この部屋を削除</button>'}</div></div>`;
-    foot.querySelector('.btn').addEventListener('click', closeRoom);
+    okBtn(w);
+    const foot = document.createElement('div'); foot.className = 'gcard'; foot.style.padding = '12px 16px';
+    foot.innerHTML = `<div class="hint" style="margin-bottom:6px">部屋の名前（例：2階トイレ）</div><div style="display:flex;gap:8px;align-items:center"><input class="rname" value="${esc(room.name)}" style="flex:1">${first ? '' : '<button type="button" class="del">この部屋を削除</button>'}</div>`;
     foot.querySelector('.rname').addEventListener('input', (e) => { room.name = e.target.value; w.querySelector('.rt-name').textContent = room.name; saveDraft(); });
     const del = foot.querySelector('.del');
     if (del) del.addEventListener('click', () => {
@@ -709,6 +809,7 @@
         <div class="tr big"><span>粗利率</span><span>${fmtPct(r.marginRate)}%</span></div>
         ${r.missing ? `<div class="hint" style="color:var(--danger)">原価が未設定の項目が ${r.missing} 件あります（原価0として計算）</div>` : ''}`;
     } else pb.innerHTML = '';
+    $('#unsetNote').textContent = r.unset ? `※ 単価未設定の工事が ${r.unset} 件あります。合計には入っていません（別途）。` : '';
     const w = $('#sumWrap');
     if (!r.sections.length) { w.innerHTML = '<div class="hint">まだ工事が選ばれていません。トップの「内部工事」「外部工事」から工事をタップしてください。</div>'; return; }
     let h = '<table class="sum"><tr><th>工事内容</th><th class="r">数量</th><th class="r">金額</th></tr>';
@@ -718,7 +819,7 @@
         h += `<tr class="cat"><td colspan="3">${esc(g.name)}</td></tr>`;
         g.items.forEach((i) => {
           const cs = costMode ? `<br><span class="costline" style="display:block">${i.costAmount == null ? '原価 未設定' : '原価 ' + yen(i.costAmount) + '　粗利 ' + fmtPct(marginPct(i.amount, i.costAmount)) + '%'}</span>` : '';
-          h += `<tr><td>${esc(i.name)}${i.grade ? `<br><span class="hint">${esc(i.grade)}</span>` : ''}${i.memo ? `<br><span class="hint">${esc(i.memo)}</span>` : ''}</td><td class="r">${fmtQty(i.qty)}${esc(i.unit)}<br><span class="hint">@${yen(i.up)}</span></td><td class="r">${yen(i.amount)}${cs}</td></tr>`;
+          h += `<tr><td>${esc(i.name)}${i.grade ? `<br><span class="hint">${esc(i.grade)}</span>` : ''}${i.memo ? `<br><span class="hint"${i.unset ? ' style="color:var(--danger)"' : ''}>${esc(i.memo)}</span>` : ''}</td><td class="r">${fmtQty(i.qty)}${esc(i.unit)}<br><span class="hint">@${yen(i.up)}</span></td><td class="r">${yen(i.amount)}${cs}</td></tr>`;
         });
       });
     });
@@ -832,6 +933,8 @@
   const calcSell = (cost) => Math.ceil(cost / (1 - marginTarget / 100) / 100) * 100;
   function itemCost(it, id, line) {
     if (!costs || !costs.items) return null;
+    const ov = fullOv(id);
+    if (ov) { if (!ov.keep) return 0; const kc = costs.items[ov.keep]; return kc && kc.cost != null && kc.cost !== '' ? Number(kc.cost) : null; }
     const c = costs.items[id]; if (!c) return null;
     if (it.grades) { const g = line ? (line.grade || it.grades[0].name) : it.grades[0].name; const v = c.grades && c.grades[g]; return v == null || v === '' ? null : Number(v); }
     return c.cost == null || c.cost === '' ? null : Number(c.cost);
@@ -870,7 +973,8 @@
   function catOf() { // 項目がどの区分・グループに出るか（表示順用）
     const m = {}; const add = (id, sec, name) => { if (!m[id]) m[id] = sec + '：' + name; };
     RT().forEach((rt) => rtItems(rt).forEach((id) => add(id, '1 内部工事', rt.name)));
-    (P.whole || []).forEach((g) => g.items.forEach((id) => add(id, '1 内部工事', '家全体 ' + g.name)));
+    partItems(commonParts()).forEach((id) => add(id, '1 内部工事', '共通'));
+    (P.whole || []).forEach((g) => g.items.forEach((id) => add(id, '1 内部工事', '共通 ' + g.name)));
     (P.exterior || []).forEach((g) => g.items.forEach((id) => add(id, '2 外部工事', g.name)));
     return m;
   }
@@ -984,7 +1088,7 @@
       const id = row.dataset.id;
       row.querySelector('.open').addEventListener('click', () => {
         const x = savedList().find((y) => y.id === id); if (!x) return;
-        if (!x.draft || x.draft.v !== 6) { alert('前の版で作った見積のため、この版では開けません。'); return; }
+        if (!x.draft || x.draft.v !== 7) { alert('前の版で作った見積のため、この版では開けません。'); return; }
         if (x.id !== draft.savedId && !confirm(`「${x.name}」を開きますか？\n今の入力内容は置き換わります（保存していない内容は消えます）`)) return;
         draft = Object.assign(blankDraft(), JSON.parse(JSON.stringify(x.draft))); saveDraft(); renderAll(); showPage('home'); toast('開きました：' + x.name);
       });

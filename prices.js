@@ -5,7 +5,7 @@
 //    生成日: 2026-11-11
 // ============================================================
 window.PRICE_TABLE = {
- "version": 4,
+ "version": 5,
  "generatedAt": "2026-11-11",
  "settings": {
   "company": "株式会社ワイケイアート",
@@ -40,7 +40,7 @@ window.PRICE_TABLE = {
    "price": 3900
   },
   "habaki": {
-   "name": "巾木",
+   "name": "巾木交換",
    "unit": "m",
    "qtyFrom": "perim",
    "price": 1200
@@ -641,8 +641,223 @@ window.PRICE_TABLE = {
    "unit": "一式",
    "note": "コンセント・スイッチ交換、分電盤交換、照明交換、水回りの配線・ダクト工事、スリーブ交換、エアコン・TV各部屋配線",
    "price": 277200
+  },
+  "kc_same": {
+   "name": "キッチン交換（位置そのまま）",
+   "unit": "一式",
+   "price": 72300
+  },
+  "kc_move": {
+   "name": "キッチン交換（位置が変わる）",
+   "unit": "一式",
+   "price": 102500
+  },
+  "wc_swap": {
+   "name": "トイレ交換",
+   "unit": "台",
+   "price": 21700
+  },
+  "ub_from_zairai": {
+   "name": "浴室交換（既存が在来）",
+   "unit": "一式",
+   "price": 84400
+  },
+  "ub_from_ub": {
+   "name": "浴室交換（既存がユニットバス）",
+   "unit": "一式",
+   "price": 36200
+  },
+  "ub_expand": {
+   "name": "浴室拡張（基礎ハツリなど）",
+   "unit": "一式",
+   "price": 18100
+  },
+  "ws_same": {
+   "name": "化粧台交換（その場で交換）",
+   "unit": "台",
+   "price": 21700
+  },
+  "ws_move": {
+   "name": "化粧台交換（位置替えあり）",
+   "unit": "台",
+   "price": 0
+  },
+  "laundry_new": {
+   "name": "洗濯機置き場新設",
+   "unit": "一式",
+   "price": 16900
+  },
+  "floor_tile": {
+   "name": "フロアタイル張り",
+   "unit": "㎡",
+   "qtyFrom": "floor",
+   "price": 0
+  },
+  "floor_choshaku": {
+   "name": "長尺シート張り",
+   "unit": "㎡",
+   "qtyFrom": "floor",
+   "price": 0
+  },
+  "habaki_paint": {
+   "name": "巾木塗装",
+   "unit": "m",
+   "qtyFrom": "perim",
+   "price": 0
+  },
+  "mawari_swap": {
+   "name": "周り縁交換",
+   "unit": "m",
+   "qtyFrom": "perim",
+   "price": 0
+  },
+  "mawari_paint": {
+   "name": "周り縁塗装",
+   "unit": "m",
+   "qtyFrom": "perim",
+   "price": 0
+  },
+  "window_clean": {
+   "name": "窓枠クリーニング",
+   "unit": "箇所",
+   "price": 0
+  },
+  "fukinuke": {
+   "name": "吹き抜けあり（増額）",
+   "unit": "一式",
+   "price": 0
+  },
+  "window_swap": {
+   "name": "窓交換",
+   "unit": "箇所",
+   "price": 0
+  },
+  "window_close": {
+   "name": "窓潰し",
+   "unit": "箇所",
+   "price": 0
+  },
+  "wa_yo_shin": {
+   "name": "和室→洋室化（既存が真壁）",
+   "unit": "一式",
+   "price": 207300
+  },
+  "wa_yo_o": {
+   "name": "和室→洋室化（既存が大壁）",
+   "unit": "一式",
+   "price": 68700
+  },
+  "st_tesuri": {
+   "name": "階段 手すり",
+   "unit": "一式",
+   "price": 0
+  },
+  "st_paint": {
+   "name": "階段 塗装",
+   "unit": "一式",
+   "price": 0
+  },
+  "st_cf": {
+   "name": "階段 CF",
+   "unit": "一式",
+   "price": 0
+  },
+  "st_nonslip": {
+   "name": "階段 ノンスリップ",
+   "unit": "一式",
+   "price": 0
   }
  },
+ "common": [
+  {
+   "name": "クロス",
+   "items": [
+    "cloth"
+   ],
+   "labels": {
+    "cloth": "クロス張替え"
+   }
+  },
+  {
+   "name": "床（全部屋まとめて）",
+   "apply": [
+    {
+     "label": "フローリング",
+     "item": "floor_over"
+    },
+    {
+     "label": "CF",
+     "item": "cf"
+    },
+    {
+     "label": "フロアタイル",
+     "item": "floor_tile"
+    }
+   ]
+  },
+  {
+   "name": "建具",
+   "apply": [
+    {
+     "label": "全部交換",
+     "item": "door_replace"
+    }
+   ],
+   "items": [
+    "knob"
+   ],
+   "labels": {
+    "knob": "ドアノブ交換"
+   }
+  },
+  {
+   "name": "巾木",
+   "exclusive": true,
+   "items": [
+    "habaki",
+    "habaki_paint"
+   ],
+   "labels": {
+    "habaki": "交換",
+    "habaki_paint": "塗装"
+   }
+  },
+  {
+   "name": "周り縁",
+   "exclusive": true,
+   "items": [
+    "mawari_swap",
+    "mawari_paint"
+   ],
+   "labels": {
+    "mawari_swap": "交換",
+    "mawari_paint": "塗装"
+   }
+  },
+  {
+   "name": "窓枠",
+   "exclusive": true,
+   "items": [
+    "window_paint",
+    "window_clean",
+    "window_dinoc"
+   ],
+   "labels": {
+    "window_paint": "塗装",
+    "window_clean": "クリーニング",
+    "window_dinoc": "ダイノックシート"
+   }
+  },
+  {
+   "name": "レベル工事",
+   "items": [
+    "level"
+   ],
+   "labels": {
+    "level": "あり"
+   }
+  }
+ ],
  "whole": [
   {
    "id": "setsubi",
@@ -702,40 +917,40 @@ window.PRICE_TABLE = {
    "id": "genkan",
    "name": "玄関",
    "icon": "🚪",
-   "defaultTatami": 1,
+   "defaultTatami": 2,
    "parts": [
     {
-     "name": "壁・天井",
-     "items": [
-      "cloth"
-     ]
-    },
-    {
-     "name": "玄関ドア・鍵",
      "items": [
       "genkan_door",
-      "key"
-     ]
+      "key",
+      "getabako"
+     ],
+     "labels": {
+      "genkan_door": "玄関ドア交換",
+      "key": "鍵交換",
+      "getabako": "下駄箱交換"
+     }
     },
     {
-     "name": "下駄箱・框",
+     "name": "床張り",
+     "exclusive": true,
      "items": [
-      "getabako",
-      "kamachi"
-     ]
+      "floor_tile",
+      "floor_choshaku"
+     ],
+     "labels": {
+      "floor_tile": "フロアタイル",
+      "floor_choshaku": "長尺"
+     }
     },
     {
-     "name": "照明",
+     "name": "吹き抜け",
      "items": [
-      "light"
-     ]
-    },
-    {
-     "name": "巾木・廻り縁",
-     "items": [
-      "habaki",
-      "mawaribuchi"
-     ]
+      "fukinuke"
+     ],
+     "labels": {
+      "fukinuke": "あり"
+     }
     }
    ]
   },
@@ -743,100 +958,71 @@ window.PRICE_TABLE = {
    "id": "kitchen",
    "name": "キッチン",
    "icon": "🍳",
-   "size": true,
-   "defaultTatami": 6,
+   "defaultTatami": 4.5,
    "parts": [
     {
-     "name": "キッチン本体（商品込み）",
+     "name": "キッチン交換",
+     "exclusive": true,
      "items": [
-      "kitchen",
-      "kitchen_faucet"
-     ]
+      "kc_same",
+      "kc_move"
+     ],
+     "labels": {
+      "kc_same": "位置そのまま",
+      "kc_move": "位置が変わる"
+     }
     },
     {
-     "name": "床",
+     "items": [
+      "door_replace"
+     ],
+     "labels": {
+      "door_replace": "建具交換"
+     }
+    },
+    {
+     "name": "床張り",
      "exclusive": true,
      "items": [
       "floor_over",
-      "cf"
-     ]
-    },
-    {
-     "name": "壁・天井",
-     "items": [
-      "cloth"
-     ]
-    },
-    {
-     "name": "照明",
-     "items": [
-      "light"
-     ]
-    },
-    {
-     "name": "巾木・廻り縁",
-     "items": [
-      "habaki",
-      "mawaribuchi"
-     ]
+      "cf",
+      "floor_tile"
+     ],
+     "labels": {
+      "floor_over": "フローリング",
+      "cf": "CF",
+      "floor_tile": "フロアタイル"
+     }
     }
-   ],
-   "note": "商品込みの金額です。カチタス支給品のときは選ばず、上の「家全体 → 設備工事」で工事費だけを選びます"
+   ]
   },
   {
    "id": "living",
    "name": "リビング",
    "icon": "🛋",
-   "size": true,
-   "defaultTatami": 10,
+   "living": true,
    "parts": [
     {
-     "name": "床",
+     "items": [
+      "door_replace"
+     ],
+     "labels": {
+      "door_replace": "建具交換"
+     }
+    },
+    {
+     "name": "床張り",
      "exclusive": true,
      "items": [
       "floor_over",
-      "cf"
-     ]
-    },
-    {
-     "name": "床の下地",
-     "items": [
-      "level"
-     ]
-    },
-    {
-     "name": "壁・天井",
-     "items": [
-      "cloth"
-     ]
-    },
-    {
-     "name": "建具",
-     "items": [
-      "door_replace",
-      "knob"
-     ]
-    },
-    {
-     "name": "照明",
-     "items": [
-      "light"
-     ]
-    },
-    {
-     "name": "巾木・廻り縁",
-     "items": [
-      "habaki",
-      "mawaribuchi"
-     ]
-    },
-    {
-     "name": "窓枠",
-     "items": [
-      "window_paint",
-      "window_dinoc"
+      "cf",
+      "floor_tile"
      ],
-     "exclusive": true
+     "labels": {
+      "floor_over": "フローリング",
+      "cf": "CF",
+      "floor_tile": "フロアタイル"
+     }
     }
    ]
   },
@@ -847,31 +1033,36 @@ window.PRICE_TABLE = {
    "defaultTatami": 1,
    "parts": [
     {
-     "name": "便器（商品込み）",
      "items": [
-      "toilet"
-     ]
+      "wc_swap"
+     ],
+     "labels": {
+      "wc_swap": "トイレ交換"
+     }
     },
     {
-     "name": "内装",
-     "items": [
-      "toilet_interior"
-     ]
-    },
-    {
-     "name": "建具",
      "items": [
       "door_replace"
-     ]
+     ],
+     "labels": {
+      "door_replace": "建具交換"
+     }
     },
     {
-     "name": "照明",
+     "name": "床張り",
+     "exclusive": true,
      "items": [
-      "light"
-     ]
+      "floor_over",
+      "cf",
+      "floor_tile"
+     ],
+     "labels": {
+      "floor_over": "フローリング",
+      "cf": "CF",
+      "floor_tile": "フロアタイル"
+     }
     }
-   ],
-   "note": "商品込みの金額です。カチタス支給品のときは選ばず、上の「家全体 → 設備工事」で工事費だけを選びます"
+   ]
   },
   {
    "id": "bath",
@@ -880,110 +1071,104 @@ window.PRICE_TABLE = {
    "defaultTatami": 2,
    "parts": [
     {
-     "name": "浴室本体（商品込み）",
+     "name": "浴室交換",
+     "exclusive": true,
      "items": [
-      "bath_zairai_ub",
-      "bath_ub"
+      "ub_from_zairai",
+      "ub_from_ub"
      ],
-     "exclusive": true
+     "labels": {
+      "ub_from_zairai": "既存が在来",
+      "ub_from_ub": "既存がユニットバス"
+     }
     },
     {
-     "name": "ドア・換気扇",
      "items": [
-      "bath_door",
-      "bath_fan"
-     ]
+      "ub_expand",
+      "window_swap",
+      "window_close",
+      "door_replace"
+     ],
+     "labels": {
+      "ub_expand": "浴室拡張",
+      "door_replace": "建具交換"
+     }
     }
-   ],
-   "note": "商品込みの金額です。カチタス支給品のときは選ばず、上の「家全体 → 設備工事」で工事費だけを選びます"
+   ]
   },
   {
    "id": "wash",
-   "name": "洗面所",
+   "name": "洗面室",
    "icon": "🚰",
    "defaultTatami": 2,
    "parts": [
     {
-     "name": "洗面台（商品込み）",
+     "name": "化粧台交換",
+     "exclusive": true,
      "items": [
-      "washstand"
-     ]
+      "ws_same",
+      "ws_move"
+     ],
+     "labels": {
+      "ws_same": "その場で交換",
+      "ws_move": "位置替えあり"
+     }
     },
     {
-     "name": "内装",
      "items": [
-      "wash_interior"
-     ]
-    },
-    {
-     "name": "建具",
-     "items": [
+      "laundry_new",
+      "window_swap",
+      "window_close",
       "door_replace"
-     ]
+     ],
+     "labels": {
+      "door_replace": "建具交換"
+     }
     },
     {
-     "name": "照明",
+     "name": "床張り",
+     "exclusive": true,
      "items": [
-      "light"
-     ]
+      "floor_over",
+      "cf",
+      "floor_tile"
+     ],
+     "labels": {
+      "floor_over": "フローリング",
+      "cf": "CF",
+      "floor_tile": "フロアタイル"
+     }
     }
-   ],
-   "note": "商品込みの金額です。カチタス支給品のときは選ばず、上の「家全体 → 設備工事」で工事費だけを選びます"
+   ]
   },
   {
    "id": "yo",
    "name": "洋室",
    "icon": "🛏",
-   "size": true,
+   "count": 3,
    "defaultTatami": 6,
    "parts": [
     {
-     "name": "床",
+     "items": [
+      "door_replace"
+     ],
+     "labels": {
+      "door_replace": "建具交換"
+     }
+    },
+    {
+     "name": "床張り",
      "exclusive": true,
      "items": [
       "floor_over",
-      "cf"
-     ]
-    },
-    {
-     "name": "床の下地",
-     "items": [
-      "level"
-     ]
-    },
-    {
-     "name": "壁・天井",
-     "items": [
-      "cloth"
-     ]
-    },
-    {
-     "name": "建具",
-     "items": [
-      "door_replace",
-      "knob"
-     ]
-    },
-    {
-     "name": "照明",
-     "items": [
-      "light"
-     ]
-    },
-    {
-     "name": "巾木・廻り縁",
-     "items": [
-      "habaki",
-      "mawaribuchi"
-     ]
-    },
-    {
-     "name": "窓枠",
-     "items": [
-      "window_paint",
-      "window_dinoc"
+      "cf",
+      "floor_tile"
      ],
-     "exclusive": true
+     "labels": {
+      "floor_over": "フローリング",
+      "cf": "CF",
+      "floor_tile": "フロアタイル"
+     }
     }
    ]
   },
@@ -991,128 +1176,59 @@ window.PRICE_TABLE = {
    "id": "wa",
    "name": "和室",
    "icon": "🎋",
-   "size": true,
    "defaultTatami": 6,
-   "note": "洋室にするとき：真壁（柱が見える壁）なら大壁化、砂壁・板張り天井ならベニア増し張りが必要です",
    "parts": [
     {
-     "name": "洋室にする下地",
+     "name": "どうする？",
+     "exclusive": true,
      "items": [
-      "okabe",
-      "veneer_cw",
-      "veneer_c"
+      "tatami_omote",
+      "wa_yo_shin",
+      "wa_yo_o"
      ],
-     "exclusive": true
+     "labels": {
+      "tatami_omote": "表替え（和室残し）",
+      "wa_yo_shin": "洋室化（既存が真壁）",
+      "wa_yo_o": "洋室化（既存が大壁）"
+     }
     },
     {
-     "name": "床",
-     "items": [
-      "yuka_gumi",
-      "floor_over",
-      "tatami_omote"
-     ]
-    },
-    {
-     "name": "壁・天井",
-     "items": [
-      "cloth"
-     ]
-    },
-    {
-     "name": "襖・障子",
-     "items": [
-      "fusuma",
-      "shoji"
-     ]
-    },
-    {
-     "name": "木部",
-     "items": [
-      "aku"
-     ]
-    },
-    {
-     "name": "押入れ",
-     "items": [
-      "oshiire_cf",
-      "oshiire_over"
-     ],
-     "exclusive": true
-    },
-    {
-     "name": "照明",
-     "items": [
-      "light"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "hall",
-   "name": "廊下",
-   "icon": "🚶",
-   "size": true,
-   "defaultTatami": 3,
-   "parts": [
-    {
-     "name": "床",
+     "name": "洋室化するときの床",
      "exclusive": true,
      "items": [
       "floor_over",
-      "cf"
-     ]
-    },
-    {
-     "name": "床の下地",
-     "items": [
-      "level"
-     ]
-    },
-    {
-     "name": "壁・天井",
-     "items": [
-      "cloth"
-     ]
-    },
-    {
-     "name": "照明",
-     "items": [
-      "light"
-     ]
-    },
-    {
-     "name": "巾木・廻り縁",
-     "items": [
-      "habaki",
-      "mawaribuchi"
-     ]
+      "cf",
+      "floor_tile"
+     ],
+     "labels": {
+      "floor_over": "フローリング",
+      "cf": "CF",
+      "floor_tile": "フロアタイル"
+     },
+     "noApply": true
     }
-   ]
+   ],
+   "note": "真壁＝柱が壁の表面に見えている。大壁＝柱が壁の中に隠れている"
   },
   {
    "id": "stairs",
    "name": "階段",
    "icon": "🪜",
-   "size": true,
-   "defaultTatami": 3,
+   "defaultTatami": 2,
    "parts": [
     {
-     "name": "壁・天井",
      "items": [
-      "cloth"
-     ]
-    },
-    {
-     "name": "照明",
-     "items": [
-      "light"
-     ]
-    },
-    {
-     "name": "巾木",
-     "items": [
-      "habaki"
-     ]
+      "st_tesuri",
+      "st_paint",
+      "st_cf",
+      "st_nonslip"
+     ],
+     "labels": {
+      "st_tesuri": "手すり",
+      "st_paint": "塗装",
+      "st_cf": "CF",
+      "st_nonslip": "ノンスリップ"
+     }
     }
    ]
   }
@@ -1146,10 +1262,21 @@ window.PRICE_TABLE = {
    ]
   }
  ],
+ "inFull": {
+  "kc_same": true,
+  "kc_move": {
+   "keep": "sb_opt_kitchen_move"
+  },
+  "wc_swap": true,
+  "ub_from_zairai": true,
+  "ub_from_ub": true,
+  "ws_same": true,
+  "laundry_new": true
+ },
  "costEnc": {
   "v": 1,
-  "salt": "dbn/ZNMjThR5/pw9B2MvHw==",
-  "iv": "Zm6sHFEBoBlFyk7e",
-  "data": "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"
+  "salt": "4jv3zulD7SsFq470esmhbA==",
+  "iv": "SFYoIzbR59w2YZeC",
+  "data": "LqEomDsoI+hFtUvdMyZgC7BRTNt3hbMGWDtRB1adK1HrqT5wV5IDowf/YFXVNlsG4WYbJm4LPir043OUf7Xj5ybmLoi4dVrEeAcdcJVPZR8Gy/DfyJpNTUmL8cN6l4B/CYUaC4VQS9j7DtXvQHvsiyMPB2NjjtbOrUbVErhWLjWV+HZYxP0AkrtPdIqIqBfqaT19hVHw4YYOVk06t2X0Pflq2b7gSqvyGLtNZn2rbdNbn0Vw3i/i9VZfK5KlD+kn10EdenOd3JtZgxFpkRRrD5CwF6KN1fKezH5BmGX5eLKzEY1yY3zEzN6i5lgvE0RK1Ag1lU/0x2hMQHrkUYu/ovS/S99kwnfddCTZzSJAVBpyZBV4DDmNv2ACEpVbURMQiPCjKRCUBr4dM7Kt6J8ivCF3aBpNFnpVlEBL2z/cZZDYyS2fFJpnBhNBAOHCnphfF1NqSRpNx5tgPpU4zAJ6/5pv4FN37p1OHGCynOespSv2x0HJLR1ho8PZ5+v7dyVv4cJ95no5z85f6TjXRoi1aflVQwHKaKfDTTdaJftk1SqHwR+cRUR5ol8nEYHIk2/41bIOjrlrgkMe98b2yDWhTZ1yynIBvud7dt6IHjiUvrsQ1QUf44v2mjDxSmtOYLiCUSH1WhcOZQ0NZhQ066VUvcyv1qx3dUWQ2winnJARoWWWDV2W4D4cqw2n1nDgRs8oB8lMnbzbq4O+Odmsf67TCHkGYTlO/ZSkTQJCLWjiRDrNDmky52MTS76Bz2quE3EDdcPegxxS63gHk7TkSWOVBuWXrsBzPKk+TeIHXUCy66OU+zm1r2IZVOZs3EV7GcNlS5u7oVQ7HEvLtMsuoNVGNxhAf8/gl38OE0mMsKMyNG019KGO1jkydmnQFKRxteJRN6pZHaFY2JLxd4SqBEmqr47uYPj0OWcF1IOwB2EwC4iVgn4kpsXuw8wV1OSXyPcFB4fkbiGqnH2pdCICXSFAe8F9LIp8GLb4cdXR1CiG4id3UFcoyRTXnuvVE1kSe3D03bMySFHxQl1r38N3U5rD3frRjkjRNrgF5ApPIvy+ACMryjrLsAW1WgLJ3BtJHykS6yGpwMMt9vv1vYsZXqE3zcYYabbpuNLdXPF5zILJQZdbk4hh8U4RYtu6VzPx+fcLOpyzhkPe3u00OOjDxdTFFzq3tGfM5acAzHzoHTJEiBhZf/xsewGOfs2sxpBKNi3RHqZG/jTyHRi7d9GQethOSQ1EPmZci2VUcnsioUVpPWMdqPjP75k6Eag05fPorIGeUhj0OxBZDKzIvR5UeEHA+eaIAGLwi6g6up+JhGFHSaBEL5aXJaQMyL4bfaQKrFkb/YefEWf3jEve1bHHKfZgBX48ecFADASlu/CIhj/+FHatMqWe1XIclqwcjelO36NaXalxRFLngFAwbjlEg0WVwfBDkVrhyzfeckOeUmuSeK1s93uGc2cTTheMqRJPh9FCr8rDtdppP7KfwNe7LidEzJtoQ3Ge7CuEYok1gQc0LXSv0lulNV9mrqI9ghSQ0IlCV7zoI0v5H4uXs4Srk51qvCcxZJGp6VOxfMXly9fG2RzYlarRArPCg1vJEDN9MtitCzVTzGp/fegsPoDvZyDP2pWEXoYJttf5ZPDThhfVzjeLjeuIvV12tg9iO1bD1GL9UMAayyRXi3LUQ8TH+qQx4Pv+fldMBwzkVOVgl5DRYTPm+YkOrLk7Uv6pWBQ8AZgR7X+PzI/d6N5Ip4+67NvRIaPmzxWFbs2bGAyjDTOsO0MYlDcYi3cDnTR7Ocs6L5AKX8oPKOdh4jJ1w+RR0zSjnZsimfr/A3XKFby764ZLU18LjIgnsdgUsNDr3yL9jgD4/wii9A44Vtn5tIrapZ+GDhwJySg+MT7Gie6GzHgBXasS22gQjE53dqY/TazZRMSde6Um+tfDui5vK/OjC9tktaC5Ryz+ERsMoOUNrSyeIddGRLgOUE3jeesPa68m+OAiD/rvOY1WyJ0vG96/hrJREomBiCiC7mqceg3TziL4I38hLsPV+kUrTBdt/U7vVCFOwnc6GKzNqej3S43rxmbB1GxIIZH7L6IfYYmpn9wmRlVymYiRZJfDIYfeDmDmYhbBH0DPQLpjFts53d4tOgxH7EWoSp+/I7gfM+RkAr3cUucTUgvv5w3h8z0q1QB0eCrfLTBjSx1pQKrifN79WvbzPm2Ye/qNIC8EtiiFL7zkhDl/DShesHy+lIrWvvEFbrxJJ6xXU25hYYegqvqIP+/5mSQ376mbYZPYIN8r/vaV6DCGD26XULQoa3SrbIwTAH5A9g7x1sZX3tLlMNf1FGnxLPkg7RYwsExSJ1i6LGJuUw1KCqpmxLqtYfbxdr79wnqgPb6ByINsqrCmUo8RtgEicTyl5ESMDyeFm3K/5Tj1aGV5PM9N71z1sybN8Odj8YhwvszHtAqFreryR6AK7U6eWIFjMteMQb0jVVWRhuhhkY7KhYw4sBeHllXuGmU4QHuWZxQ0WkP9nnbPp8I6mQmYfOdp8VQBhLuJhSA4AMnjggMahVyef570BxDeTyF0iRV1gIhqXRdqIwiurHBFS+FNUTy2ElqVFoCCAIrKnBFTW+WjdR7luNGNnaDsaIeavj3tAnS3HXxl3LYSkg1ry+5ic64OL3h2Z19qo9MK+vTfyxtVsS0vQ35zXsAQv7O1nwAOY4dV1yzGiKrN6xeSbNfY4aFigrQ/EKtIejUYO0iUx9f89r/TAfAYd8UvRvNX871wPllmKyrckHF5dUU6bWBZlNqAfaDBMGLPqy0xdMKXwQTpN8apaj/ZHuBQll+LewiDwZvTzHM+zvBTutOkg/jisaY7x3O4PNEP1N++PJZpe8Cfum7Xi2phFY7n6j0VpIEb5Lj9f0UqUUriLXyylHEW2Dvn6Qc+cRPekH1Vps/cDOYzGbGFo4qBg3hLWLpcD1YG5+vjqjOiX6CYsh3/SH1KEEUOzukQYsZZ2eVg0EcgIAjWwryVoIqdQ5eg2hgghCE/sAG45R9nqky0nG6ALlr6WGS6oOPZwiR7Iq2f78ZMB8D1A/pZHXSTmxvX+sKNAEG7HU2bQTpfyO8c59ylTQ21uhmSdQChupkYx5MKo8xjq8p1rNlS0u7Ac9z+D2jaOLHxl0yND8KQIsqdAMtSrTPWe8QDt2ROkTpCSg0Vswh/I/Ni5a/7AkCHBoYJCqo07dHyDwZwdE5iVk5HOJdVC8A9xH4lkJwP4VUrhGOt274K8I4n7nyckZkR9MP2GNoNhUhQYP2PO+SXMLqKSR/P63qCdy9+jYEMCx0LD/1DKLmeh6DsYDuOSbtmq2SKodLwkEa3lLh7S3qMplM9sXe8REFnCg4qkTXjEiInbBHdM+zKbne70ZEJ+fufEn8619GSSECnO3T/Bilfhm5RjRdOjvDw0In9+CrShpupiXtkiVDxyTqZ1RqLKUSo93T7C+mucjgCvmlyxNlvX/bz4RCu1JPMNC9ZNdoGpXyTJ31eCSvPXc8JQ80FiXNUKCx7cHfsFiF/L57JC1L5KCQ4lxg4BrFBBXQZBz+qXgEY8L4KvwJaSBVgicb/8ToDGtIXV1VB/3vTVlfrNbM5kf8oY8+vi9AD6sTKmSNpxZ2aVj4zEVY+cQ2pk6Bp2KTAR7iqFmb+U+U8xmNqDOSro1aA+iVjgm3kH6bNmL4DJ2VK0S3pFGQ5ZHJTHJF3hCpzN9K9v5VTr2B3+pnGkNK+3469gBJRFTmuQCowL48pR9iwamKMOZw48E1g0ABXAck3FEFquwhnSz5Q0v0vdz+xV8cW9CzuEAJQiiRQfoG2JZIXtxolsjhJE1uCI9GMP5o+KMg90FcadwIcdBIyZ9Ge84JZgS7R9VAUuvx9/co11YbPxJ58zKVS0u7R9cr5u7kXBb/9sjS2LuSbZqDVtXKidM4tJOBkja1DkLAEMvK98o7MaYMBB1AhFqLgodp0QHoGeN3RudolK/iE3NbIqXSsw/HyEngS3nCPmkthL70sx/l9M7BNw+TL2ArgSh4K3WoPJEkY0UF0iVWd5Bx3jhJxNmFW8IS3sire35BNf5Pg2A4M71Bfi2hYs4l3bGfCWkin07KkfDLnI212br2wYu6YpTuU5MFgUT1H4YFf0PDXBgIqBxkDKuQl5A+z68eaDvxJNYDXrptoQbErj4riUb4hWpG+9wBklu/nS6xkNy+gR9GLaLCt87L5IEufvIuiusBe3Y5HwleGACggy556iUrtwLd0MHwMacWmUXybv2MQWW5H0V+5mT3x1wwpxnGmfRNHKtkDECRZlcO93MM043K5lAO9bsY2+7TKb8mnXISpT7hnhMJuV0ezAb7uonZTcB6ziNr92f9CkyfCn60c7TJT2TKOD79WVFvqyUQvrtxC8VCFclfQaQE2JN2ezj4yfp/lZU4OH6wOdX4Qyr5ibXhh+lVQ9qB5IX/fxWmVn1geChT6hxsADGkF5Bo21iid2sZO6g9hV1xL7kHrDENKXLAiNnUZJ+0h+gTNX3BVFX6DNatHEAvct513NxXRbhBTEoK+RPc5UnbbtpwirPqalouJVbgM5LvIJodo+bTfly5GDegsMOL2t98ANwB9oc8aDPTKfXqKWRBAQbDo3uAh2XUSPJglk3vaqLvujgvxGDOWjhPZU5ihryVDVWasNBzDgo0OfgTHfv3Y5GG5slIf/i6HtGIl9sGSxgc5ySdC+UgRSmjL4FtYBWzePpd4vTAbKvbJ43M+eNJm+CqXPZLvkNkAl2AnHZ3lP0QlYinNnqWmiXVoxgr6kEHwOpjIApUfdg0D2BNvBoM7BuQOqqTMEmHVVkjtA/XBwGnsjwcLNp2fewgT98H3BDmcR+XksLkf3hiIiy9w3ZcrdLSq0xcAZx1CPsn8K7AO1a5OV0iR6fuAhN8fu32YwWaZ0KpkiDvJmIUokaEXtR6lqFXC83BQxV2kRIale3yunBN8ZLGP5fpq7Oq7lyxoB9N9+QTTOejFBSY+P3JNTv0zNB4nZd6aSIir1n7qNTzwSSjS7Zm3kELmplDMckLJsVNHpVoCU7NP2gxWwhKMJpwfBLPw/Mya82fiUOdOl9Pf3v+ygtZVc66epnn298AFUzvnvJ6iaJkiwUbjY9wF6/oG/n+nB5/Q6vGAFGB/Szk6xzwoN1uKNZxiNCXf9qTz2hQ2+hFTJImeq3ZB02C7DI+cMxoqLWDzpoGwSDNQNJpqBBm+l0f8p81T6tgHCUEc/eziDnuRHDr9Ibj78fhiJfELfjlASbtF7YoNaBJCi0kGEC4jhmJXHCZXMU1BsFIwkLXfEobHGtltlSkpRwr9yo+9INYcAv42A2YVj4vSHo7TmIWDsL18visqITYJZJnJrPTeBwLq+wOVP5Dl+A8KP17wNTTx8I3hdwFVGaBaZcVlwKUBRLtimBGU1NOls/LqMOHreB8A677QCdZEtb2YWy1y9wcfktbJOQ5ERCelbVtGEZ2TDdIyoWEp9+SVCMXmLiD+/w6RvWJhwcg1KoNKXwoPUSrRNxpDOj/joMDNn7g0AtWGHwnZEzsfXTDIOtPdQAc0MoxSjPq56ZU6Gxb5HRBYb4SpBW8WZXooom0eRL3gmooWLkWmrMLX85LrIVRlmmh22jCOSCbUXjBDLcXLyRWwv4PwqEyDt23khiEU0nHUIafs1lQ7P2t1rQ6dkzgMFHEUaB5X00G2myrdkuWN90xviipVXAuGJ9y4s6bzMOQMCoSz59xlBRO2tn42wKlotUvR+muD43WskOKKIrRq8HAwmtrnUPO9CfQ8imTf4jDWkuABkA7vIwVl/mZBi24MZccIbqRvRrE6f+XEIYTOUPeUyHcQd9Fr5bbN4sphsVddNrqXwSP9S6bJho/fqZ3zV/Zlsj6t5FCPy8fnh7bpRprsWiq9wD3nVHy9e/EVxvnwhkeBAXOUBX8GoK1/fIGh5DPy5boV0AtH0lLluo9W1WIpdJQZoa4DBpb68SEdWcyDJWSanf5FoLffvyRIvvJZsobN7FJQIsHoCvHT/zo45rouKS470xmJiYHf4+5QDxlY0lXz"
  }
 };
