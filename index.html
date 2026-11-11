@@ -339,7 +339,7 @@
       <button class="bigbtn" id="goIn" type="button"><span class="bi">🛠</span><span class="bt">内部工事<small>部屋ごと・設備・電気</small></span><span class="ba" id="homeIn"></span><span class="bc">›</span></button>
       <button class="bigbtn" id="goOut" type="button"><span class="bi">🏘️</span><span class="bt">外部工事<small>外壁塗装・外構</small></span><span class="ba" id="homeOut"></span><span class="bc">›</span></button>
       <div class="hint" style="text-align:center;margin-top:6px">カチタスに言われた工事を、タップしていくだけで見積ができます。</div>
-      <div class="hint" style="text-align:center;margin-top:18px"><span id="appVer" data-build="1112-0146"></span> <a href="#" id="btnReload">最新版に更新</a></div>
+      <div class="hint" style="text-align:center;margin-top:18px"><span id="appVer" data-build="1112-0213"></span> <a href="#" id="btnReload">最新版に更新</a></div>
     </section>
 
     <!-- 内部工事 -->
@@ -456,11 +456,11 @@
 
 <div id="sheet"></div>
 
-<script src="prices.js?v=1112-0146"></script>
+<script src="prices.js?v=1112-0213"></script>
 <script>
 (function () {
   'use strict';
-  const LS = { draft: 'katitasu3.draft8', saved: 'katitasu3.saved', settings: 'katitasu3.settings2', priceOv: 'katitasu3.priceOv', costEnc: 'katitasu3.costEnc', margin: 'katitasu3.margin' };
+  const LS = { draft: 'katitasu3.draft9', saved: 'katitasu3.saved', settings: 'katitasu3.settings2', priceOv: 'katitasu3.priceOv', costEnc: 'katitasu3.costEnc', margin: 'katitasu3.margin' };
   const SS_PASS = 'katitasu3.pass';
   const $ = (s) => document.querySelector(s);
   const yen = (n) => '¥' + Math.round(n).toLocaleString('ja-JP');
@@ -513,7 +513,7 @@
   function blankDraft() {
     let seq = 1; const rooms = [];
     RT().forEach((rt) => { for (let i = 1; i <= (rt.count || 1); i++) rooms.push(newRoom(rt, seq++, i)); });
-    return { v: 8, site: {}, plan: Object.assign({}, DEFAULT_PLAN), areaManual: null, rooms, roomSeq: seq, lines: {}, custom: [], discount: 0, note: settings.defaultNote, open: {} };
+    return { v: 9, site: {}, plan: Object.assign({}, DEFAULT_PLAN), areaManual: null, rooms, roomSeq: seq, lines: {}, custom: [], discount: 0, note: settings.defaultNote, open: {} };
   }
   let draft = Object.assign(blankDraft(), lsGet(LS.draft) || {});
   ['site', 'lines', 'open'].forEach((k) => { if (!draft[k]) draft[k] = {}; });
@@ -533,19 +533,36 @@
     return r1(t * 1.15 * TATAMI_M2);
   }
   // 家全体：クロス㎡ = 延べ床 × 4 × 1.1 / 巾木・廻り縁 m = 延べ床 × 1.3 / 箇所ものは 居室＋リビング の数
-  function house() {
-    const area = draft.areaManual != null ? Number(draft.areaManual) || 0 : autoArea();
-    return { area, floor: area, cloth: r1(area * 4 * 1.1), perim: r1(area * 1.3), rooms: draft.plan.r1 + draft.plan.r2 + (draft.plan.living ? 1 : 0) };
+  // 部屋の「床張り」で何か選んでいれば、その項目ID（なければ null）
+  function ownFloor(room) {
+    const rt = rtById(room.type), pt = rt && rt.parts.find((x) => x.name === '床張り'); if (!pt) return null;
+    return pt.items.find((id) => { const l = draft.lines[room.id + '|' + id]; return l && l.on; }) || null;
   }
+  // 共通で選んである項目（部位の名前で探す）
+  function commonOn(partName) {
+    const pt = commonParts().find((x) => x.name.indexOf(partName) === 0); if (!pt) return null;
+    return (pt.items || []).find((id) => { const l = draft.lines[COMMON + '|' + id]; return l && l.on; }) || null;
+  }
+  function house() {
+    const pl = draft.plan, area = draft.areaManual != null ? Number(draft.areaManual) || 0 : autoArea();
+    // メイン床材の面積：居室＋リビング＋キッチン。部屋ごとに床を選んだ部屋（リビング・洋室・キッチン）のぶんは引く
+    let main = ((pl.r1 + pl.r2 + pl.living) * 6 + pl.kitchen * 4.5) * TATAMI_M2;
+    draft.rooms.forEach((room) => { const rt = rtById(room.type); if (rt && rt.main && ownFloor(room)) main -= roomSize(room).floor; });
+    // 建具の枚数：居室＋リビング＋トイレ＋洗面室
+    const doors = pl.r1 + pl.r2 + (pl.living ? 1 : 0) + pl.toilet + pl.wash;
+    return { area, floor: r1(Math.max(0, main)), cloth: r1(area * 4 * 1.1), perim: r1(area * 1.3), rooms: pl.r1 + pl.r2 + (pl.living ? 1 : 0), doors };
+  }
+  const isDoorItem = (it) => /建具|ドアノブ/.test(it.name);
   // 部屋：床㎡ = 帖 × 1.62（リビングは 居室の個数 × 6帖）
   function roomSize(room) {
     const rt = rtById(room.type), t = rt && rt.living ? Math.max(1, draft.plan.living) * 6 : (rt && rt.defaultTatami) || 6, floor = t * TATAMI_M2;
     return { floor: r1(floor), cloth: r1(floor * 4 * 1.1), perim: r1(4 * Math.sqrt(floor)), tatami: t };
   }
-  const autoQty = (it, scope) => !!it.qtyFrom || (scope === COMMON && it.unit === '箇所');
+  const autoQty = (it, scope) => !!it.qtyFrom || (scope === COMMON && (it.unit === '箇所' || it.unit === '枚'));
   function defaultQty(it, room, scope) {
     const sz = scope === COMMON ? house() : room ? roomSize(room) : null;
     if (it.qtyFrom && sz) return sz[it.qtyFrom] || 0;
+    if (scope === COMMON && isDoorItem(it)) return house().doors;
     if (scope === COMMON && it.unit === '箇所') return house().rooms;
     if (it.qtyDefault != null) return it.qtyDefault;
     return 1;
@@ -656,40 +673,34 @@
   // 【フル】があるグループは「【フル】」と「個別に選ぶ（たたんである）」に分ける
   const wholeParts = (g) => g.full ? [{ items: [g.full], big: true }, { name: '個別に選ぶ', fold: true, items: g.items.filter((i) => i !== g.full) }] : [{ items: g.items, exclusive: g.exclusive }];
 
-  // 共通の「全部屋まとめて」ボタン：その項目を持つ部屋すべてに入れる／外す
-  const applyTargets = (item) => { const out = []; draft.rooms.forEach((room) => { const rt = rtById(room.type); if (!rt) return; rt.parts.forEach((pt) => { if (!pt.noApply && (pt.items || []).includes(item)) out.push({ room, pt }); }); }); return out; };
-  const applyIsOn = (item) => { const ts = applyTargets(item); return ts.length > 0 && ts.every(({ room }) => { const l = draft.lines[room.id + '|' + item]; return l && l.on; }); };
-  function applyToRooms(item, on) {
-    applyTargets(item).forEach(({ room, pt }) => {
-      if (on && pt.exclusive) pt.items.forEach((o) => { const l = draft.lines[room.id + '|' + o]; if (l) l.on = false; });
-      getLine(room.id + '|' + item, P.items[item], room, room.id).on = on;
-    });
-  }
-
   // 部位ごとにボタンを並べる。タップでON/OFF。ONにしたものだけ、下に数量の行が出る
-  // parts: [{ name?, items, labels?, exclusive?, fold?, big?, apply? }]  opts: { full, fullKeeps }
+  // parts: [{ name?, items, labels?, exclusive?, fold?, big?, note? }]  opts: { full, fullKeeps }
+  // 部屋の床・建具の欄に出す案内（共通で選んであるときは、二重に選ばないように知らせる）
+  function partNote(pt, room) {
+    if (room) {
+      const rt = rtById(room.type);
+      if (pt.name === '床張り' && rt && rt.main) { const f = commonOn('床'); if (f) { const cp = commonParts().find((x) => x.name.indexOf('床') === 0); return `共通のメイン床材（${(cp.labels && cp.labels[f]) || P.items[f].name}）が入っています。この部屋だけ変えるときに選びます`; } }
+      if ((pt.items || []).includes('door_replace') && commonOn('建具') === 'door_replace') return '共通の「建具 全部交換」に入っています。ここで押すと、その枚数が追加になります';
+    }
+    return pt.note || '';
+  }
   function partsEl(scope, parts, room, opts, onChange) {
     opts = opts || {}; const keeps = opts.fullKeeps || [];
     const wrap = document.createElement('div');
     const reg = {};
     const offOthers = (ids, keep) => ids.forEach((o) => { if (!keep(o) && reg[o]) reg[o].off(); });
     parts.forEach((pt) => {
-      const ids = (pt.items || []).filter((id) => P.items[id]); if (!ids.length && !pt.apply) return;
+      const ids = (pt.items || []).filter((id) => P.items[id]); if (!ids.length) return;
       // ボタンの名前：指定があればそれ。なければ（　）の中を省いて短く（同じ名前になるときは元の名前）
       const stripped = ids.map((id) => P.items[id].name.replace(/（.*?）/g, '').trim());
+      const note = partNote(pt, room);
       const foldKey = scope + '#' + (pt.name || '');
       const anyOn = ids.some((id) => { const l = draft.lines[scope + '|' + id]; return l && l.on; });
       const sec = document.createElement('div');
       sec.className = 'part' + (pt.fold ? ' foldable' : '') + (pt.fold && !anyOn && !draft.open[foldKey] ? ' folded' : '');
-      sec.innerHTML = (pt.name ? `<div class="part-h">${esc(pt.name)}${pt.exclusive ? '<small>どれか1つ</small>' : ''}${pt.fold ? '<span class="chev">▾</span>' : ''}</div>` : '') + `<div class="part-b">${pt.note ? `<div class="hint" style="margin:-4px 0 8px">${esc(pt.note)}</div>` : ''}<div class="chipsx"></div><div class="sels"></div></div>`;
+      sec.innerHTML = (pt.name ? `<div class="part-h">${esc(pt.name)}${pt.exclusive ? '<small>どれか1つ</small>' : ''}${pt.fold ? '<span class="chev">▾</span>' : ''}</div>` : '') + `<div class="part-b">${note ? `<div class="hint" style="margin:-4px 0 8px">${esc(note)}</div>` : ''}<div class="chipsx"></div><div class="sels"></div></div>`;
       if (pt.fold) sec.querySelector('.part-h').addEventListener('click', () => { sec.classList.toggle('folded'); draft.open[foldKey] = !sec.classList.contains('folded'); saveDraft(); });
       const chips = sec.querySelector('.chipsx'), sels = sec.querySelector('.sels');
-      (pt.apply || []).forEach((ap) => {
-        const on = applyIsOn(ap.item), chip = document.createElement('button'); chip.type = 'button'; chip.className = 'chipx' + (on ? ' on' : '');
-        chip.innerHTML = `<span class="cn">${esc(ap.label)}</span><span class="cp">${esc(pt.applyLabel || '全部屋に入れる')}</span>`;
-        chip.addEventListener('click', () => { applyToRooms(ap.item, !on); saveDraft(); renderIn(); refreshTotals(); toast(on ? '外しました' : `「${ap.label}」を入れました（部屋ごとに変えられます）`); });
-        chips.appendChild(chip);
-      });
       ids.forEach((id, i) => {
         const it = P.items[id], l = getLine(scope + '|' + id, it, room, scope);
         const label = (pt.labels && pt.labels[id]) || (stripped[i] && stripped.filter((x) => x === stripped[i]).length === 1 ? stripped[i] : it.name);
@@ -707,7 +718,7 @@
           const cl = sel.querySelector('.costline');
           if (cl && costMode) { const c = itemCost(it, id, l); const cn = costs && costs.items[id] && costs.items[id].note; cl.textContent = ov ? '' : c == null ? '原価 未設定' : `原価 ${yen(c)}${counted ? '/' + it.unit : ''}　粗利 ${fmtPct(marginPct(up, c))}%` + (cn ? `（${cn}）` : ''); }
         };
-        const changed = () => { upd(); saveDraft(); if (onChange) onChange(); refreshTotals(); };
+        const changed = () => { upd(); if (room) refreshDefaultQty(); saveDraft(); if (onChange) onChange(); refreshTotals(); };
         const build = () => {
           chip.classList.toggle('on', l.on);
           sel.style.display = l.on ? '' : 'none';
@@ -1231,7 +1242,7 @@
       const id = row.dataset.id;
       row.querySelector('.open').addEventListener('click', () => {
         const x = savedList().find((y) => y.id === id); if (!x) return;
-        if (!x.draft || x.draft.v !== 8) { alert('前の版で作った見積のため、この版では開けません。'); return; }
+        if (!x.draft || x.draft.v !== 9) { alert('前の版で作った見積のため、この版では開けません。'); return; }
         if (x.id !== draft.savedId && !confirm(`「${x.name}」を開きますか？\n今の入力内容は置き換わります（保存していない内容は消えます）`)) return;
         draft = Object.assign(blankDraft(), JSON.parse(JSON.stringify(x.draft))); saveDraft(); renderAll(); showPage('home'); toast('開きました：' + x.name);
       });
