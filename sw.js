@@ -1,8 +1,9 @@
 // オフラインでも開けるようにファイルをキャッシュする（https で公開した場合のみ有効）
-const CACHE = 'katitasu3-v1';
+// つながるときは必ず最新を取りに行く（ブラウザの古い控えを使わない）
+const CACHE = 'katitasu3-v2';
 const FILES = ['./', './index.html', './prices.js', './manifest.json', './icon.svg'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k))))); self.clients.claim(); });
 self.addEventListener('fetch', (e) => {
-  e.respondWith(fetch(e.request).then((r) => { const cp = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, cp)); return r; }).catch(() => caches.match(e.request)));
+  e.respondWith(fetch(e.request, { cache: 'no-store' }).then((r) => { const cp = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, cp)); return r; }).catch(() => caches.match(e.request)));
 });
