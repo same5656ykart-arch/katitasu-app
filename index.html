@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1f5f8b">
+<meta name="theme-color" content="#ffffff">
 <title>カチタス見積もりアプリ</title>
 <link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
 <style>
   :root {
     --bg: #f3f5f7; --card: #ffffff; --text: #1d2730; --muted: #6b7a88; --line: #dde3e8;
@@ -228,6 +229,75 @@
   .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h) + var(--total-h) + 20px); background: #333; color: #fff; padding: 10px 16px; border-radius: 999px; font-size: 14px; opacity: 0; transition: opacity .2s; z-index: 50; pointer-events: none; }
   .toast.show { opacity: 1; }
 
+  /* ===== 配色・書体：生成りの背景、白いカード、墨の文字、朱のアクセント、選んだものは緑 ===== */
+  :root {
+    --bg: #f3f3f0; --card: #ffffff; --text: #1d2026; --muted: #5e636c; --line: #d2d4ce; --surface2: #e9eae6;
+    --primary: #f26f21; --primary-soft: #fff4ec; --accent: #f26f21; --danger: #d9381e;
+    --ok: #5fae3a; --ok-dark: #4a9129; --ok-bg: #eef6e8; --ok-line: #cfe6bf; --ink: #1d2026; --radius: 14px;
+    --font-body: "BIZ UDPGothic", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+    --font-display: "Zen Kaku Gothic New", "BIZ UDPGothic", "Hiragino Sans", sans-serif;
+  }
+  body { font-family: var(--font-body); }
+  h1, h2, .bigbtn .bt, .tile .tn, .gcard-h .nm, .room-title, .chipx .cn { font-family: var(--font-display); }
+  button:focus:not(:focus-visible) { outline: none; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* ヘッダー：白地＋朱の下線、タイトルは緑 */
+  header.top { background: var(--card); color: var(--text); box-shadow: none; border-bottom: 3px solid var(--accent); }
+  header.top::before, header.top::after { display: none; }
+  header.top .logo { background: var(--accent); box-shadow: none; border-radius: 10px; }
+  header.top .kicker { color: var(--muted); letter-spacing: .2em; }
+  header.top h1 { color: var(--ok-dark); text-shadow: none; font-weight: 700; }
+  header.top .sub { color: var(--muted); opacity: 1; }
+  header.top .btn.sm.sec { background: var(--card); color: var(--text); border-color: var(--line); font-weight: 400; }
+  /* カード */
+  .card, .gcard, .addroom { border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(29,32,38,.04); }
+  .sec-h { color: var(--text); font-size: 14px; }
+  /* トップの大きなボタン */
+  .bigbtn { background: var(--ink); box-shadow: 0 10px 24px -10px rgba(29,32,38,.55); border-radius: 14px; }
+  .bigbtn#goOut { background: var(--accent); box-shadow: 0 10px 24px -8px rgba(242,111,33,.6); }
+  .bigbtn .ba { background: rgba(255,255,255,.18); padding: 3px 10px; border-radius: 999px; font-size: 13px; }
+  .bigbtn .ba:empty { display: none; }
+  /* 部屋のタイル */
+  .tile { border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(29,32,38,.04); color: var(--text); }
+  .tile .ts { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: center; line-height: 1.25; padding: 0 2px; }
+  .tile.on { border: 2px solid var(--ok); background: var(--ok-bg); }
+  .tile.on .ts { color: var(--ok-dark); }
+  .tile.on::after { background: var(--ok); box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+  .tile.add { border: 2px dashed var(--line); }
+  .tile.common { grid-column: span 2; flex-direction: row; justify-content: flex-start; gap: 12px; min-height: 104px; padding: 10px 14px; background: var(--card); color: var(--text); border: 2px solid var(--accent); }
+  .tile.common .tn { font-size: 22px; text-align: left; flex: 1; }
+  .tile.common .tn small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); opacity: 1; margin-top: 2px; }
+  .tile.common .ts { color: var(--accent); font-size: 13px; font-weight: 700; display: block; white-space: nowrap; }
+  .tile.common.on { border-color: var(--ok); background: var(--ok-bg); }
+  .tile.common.on .ts { color: var(--ok-dark); }
+  .tile.common.on::after { background: var(--ok); }
+  /* 工事のボタン */
+  .chipx { border-color: var(--line); }
+  .chipx.on { background: var(--ok); border-color: var(--ok); box-shadow: 0 2px 6px rgba(95,174,58,.4); }
+  .chipx.on .cp { color: #eef6e8; }
+  .sel, .areabox { background: var(--ok-bg); border-color: var(--ok-line); }
+  .part .part-h { color: var(--text); }
+  .part.foldable .part-h { color: var(--accent); }
+  .tchips button.on, .seg button.on { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .seg { border-color: var(--line); }
+  .seg button { color: var(--text); }
+  .qty button, .cnt-row .stepper button, .stepper button { background: var(--surface2); color: var(--text); }
+  .gcard-h .cnt { color: var(--ok-dark); background: var(--ok-bg); }
+  .back { color: var(--accent); }
+  /* ボタン・下の帯・タブ */
+  .btn { border-radius: 8px; }
+  .btn.sec { color: var(--text); border-color: var(--line); background: var(--surface2); }
+  .btn.ghost { border-color: var(--line); }
+  .totalbar .amt { color: var(--text); font-family: var(--font-display); }
+  nav.bottom button { border-top: 3px solid transparent; font-weight: 700; }
+  nav.bottom button.active { color: var(--accent); border-top-color: var(--accent); }
+  /* 見積の表 */
+  table.sum tr.sec td { background: var(--ink); }
+  table.sum tr.cat td { background: var(--surface2); color: var(--text); }
+  table.trade td.r { font-variant-numeric: tabular-nums; }
+  .totals .tr.big { font-family: var(--font-display); }
+  .toast { background: var(--ink); }
+
   #sheet { display: none; }
   @media print {
     @page { size: A4; margin: 14mm 12mm; }
@@ -269,7 +339,7 @@
       <button class="bigbtn" id="goIn" type="button"><span class="bi">🛠</span><span class="bt">内部工事<small>部屋ごと・設備・電気</small></span><span class="ba" id="homeIn"></span><span class="bc">›</span></button>
       <button class="bigbtn" id="goOut" type="button"><span class="bi">🏘️</span><span class="bt">外部工事<small>外壁塗装・外構</small></span><span class="ba" id="homeOut"></span><span class="bc">›</span></button>
       <div class="hint" style="text-align:center;margin-top:6px">カチタスに言われた工事を、タップしていくだけで見積ができます。</div>
-      <div class="hint" style="text-align:center;margin-top:18px"><span id="appVer" data-build="1112-0101"></span> <a href="#" id="btnReload">最新版に更新</a></div>
+      <div class="hint" style="text-align:center;margin-top:18px"><span id="appVer" data-build="1112-0138"></span> <a href="#" id="btnReload">最新版に更新</a></div>
     </section>
 
     <!-- 内部工事 -->
@@ -386,11 +456,11 @@
 
 <div id="sheet"></div>
 
-<script src="prices.js?v=1112-0101"></script>
+<script src="prices.js?v=1112-0138"></script>
 <script>
 (function () {
   'use strict';
-  const LS = { draft: 'katitasu3.draft7', saved: 'katitasu3.saved', settings: 'katitasu3.settings2', priceOv: 'katitasu3.priceOv', costEnc: 'katitasu3.costEnc', margin: 'katitasu3.margin' };
+  const LS = { draft: 'katitasu3.draft8', saved: 'katitasu3.saved', settings: 'katitasu3.settings2', priceOv: 'katitasu3.priceOv', costEnc: 'katitasu3.costEnc', margin: 'katitasu3.margin' };
   const SS_PASS = 'katitasu3.pass';
   const $ = (s) => document.querySelector(s);
   const yen = (n) => '¥' + Math.round(n).toLocaleString('ja-JP');
@@ -439,11 +509,11 @@
   function roomName(rt, n) { return rt.name + ((rt.count || 1) > 1 ? (MARU[n - 1] || n) : (n > 1 ? n : '')); }
   function newRoom(rt, seq, n) { return { id: 'r' + seq, type: rt.id, name: roomName(rt, n) }; }
   // 間取り（ざっくりの延べ床を出すための数）
-  const DEFAULT_PLAN = { r1: 1, r2: 2, living: 2, toilet: 1, kitchen: 1, wash: 1, stairs: 1 };
+  const DEFAULT_PLAN = { r1: 0, r2: 0, living: 0, toilet: 0, kitchen: 0, wash: 0, stairs: 0 };
   function blankDraft() {
     let seq = 1; const rooms = [];
     RT().forEach((rt) => { for (let i = 1; i <= (rt.count || 1); i++) rooms.push(newRoom(rt, seq++, i)); });
-    return { v: 7, site: {}, plan: Object.assign({}, DEFAULT_PLAN), areaManual: null, rooms, roomSeq: seq, lines: {}, custom: [], discount: 0, note: settings.defaultNote, open: {} };
+    return { v: 8, site: {}, plan: Object.assign({}, DEFAULT_PLAN), areaManual: null, rooms, roomSeq: seq, lines: {}, custom: [], discount: 0, note: settings.defaultNote, open: {} };
   }
   let draft = Object.assign(blankDraft(), lsGet(LS.draft) || {});
   ['site', 'lines', 'open'].forEach((k) => { if (!draft[k]) draft[k] = {}; });
@@ -458,17 +528,18 @@
   // ざっくりの延べ床：居室6帖、リビング=居室の個数×6帖、キッチン4.5帖、洗面室2帖、浴室2帖、トイレ1帖、階段2帖。玄関・廊下ぶんとして15%足す
   function autoArea() {
     const pl = draft.plan;
+    if (!Object.keys(DEFAULT_PLAN).some((k) => pl[k] > 0)) return 0; // 間取りが未入力
     const t = (pl.r1 + pl.r2) * 6 + pl.living * 6 + pl.kitchen * 4.5 + pl.wash * 2 + 2 + pl.toilet * 1 + pl.stairs * 2;
     return r1(t * 1.15 * TATAMI_M2);
   }
   // 家全体：クロス㎡ = 延べ床 × 4 × 1.1 / 巾木・廻り縁 m = 延べ床 × 1.3 / 箇所ものは 居室＋リビング の数
   function house() {
     const area = draft.areaManual != null ? Number(draft.areaManual) || 0 : autoArea();
-    return { area, floor: area, cloth: r1(area * 4 * 1.1), perim: r1(area * 1.3), rooms: draft.plan.r1 + draft.plan.r2 + 1 };
+    return { area, floor: area, cloth: r1(area * 4 * 1.1), perim: r1(area * 1.3), rooms: draft.plan.r1 + draft.plan.r2 + (draft.plan.living ? 1 : 0) };
   }
   // 部屋：床㎡ = 帖 × 1.62（リビングは 居室の個数 × 6帖）
   function roomSize(room) {
-    const rt = rtById(room.type), t = rt && rt.living ? draft.plan.living * 6 : (rt && rt.defaultTatami) || 6, floor = t * TATAMI_M2;
+    const rt = rtById(room.type), t = rt && rt.living ? Math.max(1, draft.plan.living) * 6 : (rt && rt.defaultTatami) || 6, floor = t * TATAMI_M2;
     return { floor: r1(floor), cloth: r1(floor * 4 * 1.1), perim: r1(4 * Math.sqrt(floor)), tatami: t };
   }
   const autoQty = (it, scope) => !!it.qtyFrom || (scope === COMMON && it.unit === '箇所');
@@ -697,19 +768,27 @@
     wholeGroups().forEach(({ g, scope }) => { const x = scopeStat(scope, g.items); st.n += x.n; st.amt += x.amt; });
     return st;
   }
+  // その場所で選んである工事の名前（タイルに小さく出す）
+  function onLabels(scope, parts) {
+    const out = [];
+    parts.forEach((pt) => (pt.items || []).forEach((id) => { const it = P.items[id], l = draft.lines[scope + '|' + id]; if (it && l && l.on) out.push((pt.labels && pt.labels[id]) || it.name.replace(/（.*?）/g, '').trim() || it.name); }));
+    draft.custom.filter((x) => x.scope === scope).forEach((x) => out.push(x.name || '追加工事'));
+    return out;
+  }
   function renderIn() {
     const w = $('#inCats'); w.innerHTML = '';
+    const guide = document.createElement('div'); guide.className = 'sec-h'; guide.style.marginTop = '2px'; guide.textContent = '① まず共通（家全体）　② 部屋をタップ'; w.appendChild(guide);
     const grid = document.createElement('div'); grid.className = 'tiles';
     const cs = commonStat();
     const ct = document.createElement('button'); ct.type = 'button'; ct.className = 'tile common' + (cs.n ? ' on' : '');
-    ct.innerHTML = `<span class="ti">🏠</span><span class="tn">共通<small>クロス・床・建具・巾木・設備・電気</small></span><span class="ts">${cs.n ? cs.n + '件' : ''}</span>`;
+    ct.innerHTML = `<span class="ti">🏠</span><span class="tn">共通<small>家全体：クロス・床・建具・設備・電気</small></span><span class="ts">${cs.n ? cs.n + '件 選択中' : 'タップ ›'}</span>`;
     ct.addEventListener('click', () => openRoom(COMMON));
     grid.appendChild(ct);
     draft.rooms.forEach((room) => {
       const rt = rtById(room.type); if (!rt) return;
       const st = scopeStat(room.id, rtItems(rt));
       const t = document.createElement('button'); t.type = 'button'; t.className = 'tile' + (st.n ? ' on' : '');
-      t.innerHTML = `<span class="ti">${rt.icon || ''}</span><span class="tn">${esc(room.name)}</span><span class="ts">${st.n ? st.n + '件' : ''}</span>`;
+      t.innerHTML = `<span class="ti">${rt.icon || ''}</span><span class="tn">${esc(room.name)}</span><span class="ts">${st.n ? esc(onLabels(room.id, rt.parts).join('・')) : ''}</span>`;
       t.addEventListener('click', () => openRoom(room.id));
       grid.appendChild(t);
     });
@@ -736,7 +815,7 @@
   }
   // ---------- 部屋の画面 ----------
   function openRoom(id) { currentRoom = id; renderRoomPage(); showPage('room'); }
-  function closeRoom() { currentRoom = null; renderIn(); showPage('in'); }
+  function closeRoom() { currentRoom = null; renderIn(); showPage('in'); if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); }
   const backBtn = (w) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'back'; b.textContent = '‹ 一覧へ戻る'; b.addEventListener('click', closeRoom); w.appendChild(b); };
   const okBtn = (w) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.style.margin = '4px 0 14px'; b.textContent = '✓ OK（一覧へ戻る）'; b.addEventListener('click', closeRoom); w.appendChild(b); };
   // ＋－で数を選ぶ行
@@ -754,12 +833,19 @@
     // 間取り → ざっくりの延べ床
     const pc = document.createElement('div'); pc.className = 'gcard'; pc.style.padding = '12px 16px';
     pc.innerHTML = '<div style="font-size:18px;font-weight:800;margin-bottom:2px">① 間取りをタップ</div><div class="hint" style="margin-bottom:6px">数を入れると、ざっくりの延べ床とクロスの量が出ます</div>';
-    PLAN_ROWS.forEach(([k, label]) => pc.appendChild(counterRow(label, () => draft.plan[k], (v) => { draft.plan[k] = v; })));
+    PLAN_ROWS.forEach(([k, label]) => {
+      if (k !== 'stairs') { pc.appendChild(counterRow(label, () => draft.plan[k], (v) => { draft.plan[k] = v; })); return; }
+      const row = document.createElement('div'); row.className = 'cnt-row';
+      row.innerHTML = `<span>${esc(label)}</span><span class="tchips"><button type="button" data-v="0" class="${draft.plan.stairs ? '' : 'on'}">なし</button><button type="button" data-v="1" class="${draft.plan.stairs ? 'on' : ''}">あり</button></span>`;
+      row.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { draft.plan.stairs = Number(b.dataset.v); refreshDefaultQty(); saveDraft(); renderRoomPage(); refreshTotals(); }));
+      pc.appendChild(row);
+    });
     const h = house(), manual = draft.areaManual != null;
     const ab = document.createElement('div'); ab.className = 'areabox';
-    ab.innerHTML = `<div class="big">延べ床 <input type="number" inputmode="decimal" min="0" step="any" value="${h.area}"> ㎡<span class="hint">（約${r1(h.area / 3.3)}坪）</span></div>
-      <div style="margin-top:4px">クロス <strong>${h.cloth}㎡</strong> <span class="hint">＝ 延べ床 × 4 × 1.1</span></div>
-      <div class="hint" style="margin-top:4px">${manual ? '延べ床を手で直しています。<a href="#" class="auto">自動に戻す</a>' : '間取りからの目安です。分かるときは数字を直せます'}</div>`;
+    const empty = !manual && !h.area;
+    ab.innerHTML = `<div class="big">延べ床 <input type="number" inputmode="decimal" min="0" step="any" value="${empty ? '' : h.area}" placeholder="—"> ㎡${empty ? '' : `<span class="hint">（約${r1(h.area / 3.3)}坪）</span>`}</div>
+      ${empty ? '<div class="hint" style="margin-top:4px">上の間取りを入れると、延べ床とクロスの量が出ます</div>' : `<div style="margin-top:4px">クロス <strong>${h.cloth}㎡</strong> <span class="hint">＝ 延べ床 × 4 × 1.1</span></div>
+      <div class="hint" style="margin-top:4px">${manual ? '延べ床を手で直しています。<a href="#" class="auto">自動に戻す</a>' : '間取りからの目安です。分かるときは数字を直せます'}</div>`}`;
     ab.querySelector('input').addEventListener('change', (e) => { draft.areaManual = e.target.value === '' ? null : Number(e.target.value); refreshDefaultQty(); saveDraft(); renderRoomPage(); refreshTotals(); });
     const au = ab.querySelector('.auto'); if (au) au.addEventListener('click', (e) => { e.preventDefault(); draft.areaManual = null; refreshDefaultQty(); saveDraft(); renderRoomPage(); refreshTotals(); });
     pc.appendChild(ab); w.appendChild(pc);
@@ -785,6 +871,12 @@
     okBtn(w);
     const foot = document.createElement('div'); foot.className = 'gcard'; foot.style.padding = '12px 16px';
     foot.innerHTML = `<div class="hint" style="margin-bottom:6px">部屋の名前（例：2階トイレ）</div><div style="display:flex;gap:8px;align-items:center"><input class="rname" value="${esc(room.name)}" style="flex:1">${first ? '' : '<button type="button" class="del">この部屋を削除</button>'}</div>`;
+    const anyOn = Object.keys(draft.lines).some((k) => k.startsWith(room.id + '|') && draft.lines[k].on);
+    if (anyOn) {
+      const clr = document.createElement('button'); clr.type = 'button'; clr.className = 'btn danger'; clr.style.marginTop = '10px'; clr.textContent = 'この部屋の選択をすべて外す';
+      clr.addEventListener('click', () => { Object.keys(draft.lines).forEach((k) => { if (k.startsWith(room.id + '|')) draft.lines[k].on = false; }); saveDraft(); renderRoomPage(); refreshTotals(); toast('選択を外しました'); });
+      foot.appendChild(clr);
+    }
     foot.querySelector('.rname').addEventListener('input', (e) => { room.name = e.target.value; w.querySelector('.rt-name').textContent = room.name; saveDraft(); });
     const del = foot.querySelector('.del');
     if (del) del.addEventListener('click', () => {
@@ -1139,7 +1231,7 @@
       const id = row.dataset.id;
       row.querySelector('.open').addEventListener('click', () => {
         const x = savedList().find((y) => y.id === id); if (!x) return;
-        if (!x.draft || x.draft.v !== 7) { alert('前の版で作った見積のため、この版では開けません。'); return; }
+        if (!x.draft || x.draft.v !== 8) { alert('前の版で作った見積のため、この版では開けません。'); return; }
         if (x.id !== draft.savedId && !confirm(`「${x.name}」を開きますか？\n今の入力内容は置き換わります（保存していない内容は消えます）`)) return;
         draft = Object.assign(blankDraft(), JSON.parse(JSON.stringify(x.draft))); saveDraft(); renderAll(); showPage('home'); toast('開きました：' + x.name);
       });
