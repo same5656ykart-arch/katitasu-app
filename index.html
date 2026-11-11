@@ -339,7 +339,7 @@
       <button class="bigbtn" id="goIn" type="button"><span class="bi">🛠</span><span class="bt">内部工事<small>部屋ごと・設備・電気</small></span><span class="ba" id="homeIn"></span><span class="bc">›</span></button>
       <button class="bigbtn" id="goOut" type="button"><span class="bi">🏘️</span><span class="bt">外部工事<small>外壁塗装・外構</small></span><span class="ba" id="homeOut"></span><span class="bc">›</span></button>
       <div class="hint" style="text-align:center;margin-top:6px">カチタスに言われた工事を、タップしていくだけで見積ができます。</div>
-      <div class="hint" style="text-align:center;margin-top:18px"><span id="appVer" data-build="1112-0138"></span> <a href="#" id="btnReload">最新版に更新</a></div>
+      <div class="hint" style="text-align:center;margin-top:18px"><span id="appVer" data-build="1112-0145"></span> <a href="#" id="btnReload">最新版に更新</a></div>
     </section>
 
     <!-- 内部工事 -->
@@ -456,7 +456,7 @@
 
 <div id="sheet"></div>
 
-<script src="prices.js?v=1112-0138"></script>
+<script src="prices.js?v=1112-0145"></script>
 <script>
 (function () {
   'use strict';
@@ -681,13 +681,13 @@
       const anyOn = ids.some((id) => { const l = draft.lines[scope + '|' + id]; return l && l.on; });
       const sec = document.createElement('div');
       sec.className = 'part' + (pt.fold ? ' foldable' : '') + (pt.fold && !anyOn && !draft.open[foldKey] ? ' folded' : '');
-      sec.innerHTML = (pt.name ? `<div class="part-h">${esc(pt.name)}${pt.exclusive ? '<small>どれか1つ</small>' : ''}${pt.fold ? '<span class="chev">▾</span>' : ''}</div>` : '') + '<div class="part-b"><div class="chipsx"></div><div class="sels"></div></div>';
+      sec.innerHTML = (pt.name ? `<div class="part-h">${esc(pt.name)}${pt.exclusive ? '<small>どれか1つ</small>' : ''}${pt.fold ? '<span class="chev">▾</span>' : ''}</div>` : '') + `<div class="part-b">${pt.note ? `<div class="hint" style="margin:-4px 0 8px">${esc(pt.note)}</div>` : ''}<div class="chipsx"></div><div class="sels"></div></div>`;
       if (pt.fold) sec.querySelector('.part-h').addEventListener('click', () => { sec.classList.toggle('folded'); draft.open[foldKey] = !sec.classList.contains('folded'); saveDraft(); });
       const chips = sec.querySelector('.chipsx'), sels = sec.querySelector('.sels');
       (pt.apply || []).forEach((ap) => {
         const on = applyIsOn(ap.item), chip = document.createElement('button'); chip.type = 'button'; chip.className = 'chipx' + (on ? ' on' : '');
-        chip.innerHTML = `<span class="cn">${esc(ap.label)}</span><span class="cp">全部屋に入れる</span>`;
-        chip.addEventListener('click', () => { applyToRooms(ap.item, !on); saveDraft(); renderIn(); refreshTotals(); toast(on ? '全部屋から外しました' : `全部屋を「${ap.label}」にしました（部屋ごとに変えられます）`); });
+        chip.innerHTML = `<span class="cn">${esc(ap.label)}</span><span class="cp">${esc(pt.applyLabel || '全部屋に入れる')}</span>`;
+        chip.addEventListener('click', () => { applyToRooms(ap.item, !on); saveDraft(); renderIn(); refreshTotals(); toast(on ? '外しました' : `「${ap.label}」を入れました（部屋ごとに変えられます）`); });
         chips.appendChild(chip);
       });
       ids.forEach((id, i) => {
