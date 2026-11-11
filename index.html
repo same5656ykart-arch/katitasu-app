@@ -54,6 +54,46 @@
   .bigbtn .bt small { display: block; font-size: 13px; font-weight: 400; opacity: .9; }
   .bigbtn .ba { font-size: 16px; font-weight: 700; white-space: nowrap; }
   .bigbtn .bc { font-size: 30px; opacity: .8; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+  .tile { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 104px; padding: 10px 4px; border: 2px solid transparent; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.08); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .tile .ti { font-size: 34px; line-height: 1.1; }
+  .tile .tn { font-size: 15px; font-weight: 800; text-align: center; line-height: 1.2; }
+  .tile .ts { font-size: 12px; color: var(--muted); min-height: 16px; }
+  .tile.on { border-color: var(--primary); background: #eaf3fa; }
+  .tile.on .ts { color: var(--primary); font-weight: 700; }
+  .tile.on::after { content: "✓"; position: absolute; top: 6px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 14px; display: grid; place-items: center; }
+  .tile.add { border: 2px dashed #b9c4ce; background: transparent; box-shadow: none; color: var(--muted); }
+  .gcard { background: #fff; border-radius: var(--radius); margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); overflow: hidden; }
+  .gcard-h { display: flex; align-items: center; gap: 10px; padding: 14px 16px 6px; }
+  .gcard-h .gi { font-size: 24px; } .gcard-h .nm { flex: 1; font-size: 18px; font-weight: 800; }
+  .gcard-h .cnt { font-size: 13px; color: var(--primary); background: var(--primary-soft); padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+  .gcard .cat-note { padding: 0 16px 6px; }
+  .part { padding: 8px 16px 10px; border-top: 1px solid var(--line); }
+  .part:first-child { border-top: 0; }
+  .part .part-h { background: none; border: 0; padding: 0 0 8px; font-size: 14px; color: #445; display: flex; align-items: center; gap: 8px; }
+  .part .part-h small { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .part .part-h .chev { margin-left: auto; color: var(--muted); }
+  .part.folded .part-b { display: none; }
+  .part.foldable .part-h { cursor: pointer; color: var(--primary); padding: 6px 0; }
+  .chipsx { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chipx { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-height: 56px; padding: 9px 14px; border: 2px solid #cfd8e0; border-radius: 12px; background: #fff; text-align: left; cursor: pointer; max-width: 100%; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  .chipx .cn { font-size: 16px; font-weight: 700; line-height: 1.25; }
+  .chipx .cp { font-size: 12px; color: var(--muted); }
+  .chipx.on { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 2px 6px rgba(31,95,139,.35); }
+  .chipx.on .cp { color: #d6e8f5; }
+  .chipx.on .cn::before { content: "✓ "; }
+  .chipx.big { width: 100%; min-height: 68px; padding: 12px 16px; }
+  .chipx.big .cn { font-size: 18px; }
+  .sel { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: #f1f7fc; border: 1px solid #cfe1ef; }
+  .sel .sl1 { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; }
+  .sel .sl1 .amt { white-space: nowrap; color: var(--primary); }
+  .sel .sl2 { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .sel .seg.grade { margin: 8px 0 0; }
+  .sel .hint { margin-top: 4px; }
+  .sel .costline { margin-top: 4px; }
+  .back { display: flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--primary); font-size: 16px; font-weight: 700; padding: 4px 0 12px; cursor: pointer; }
+  .room-title { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 900; margin: 0 2px 10px; }
+  .room-title .gi { font-size: 30px; }
   .sec-h { font-size: 13px; font-weight: 700; color: var(--muted); margin: 18px 4px 8px; }
   .part-h { background: #eef2f5; color: #445; font-size: 13px; font-weight: 700; padding: 6px 16px; border-bottom: 1px solid var(--line); }
   .room-set { padding: 12px 16px; border-bottom: 1px solid var(--line); background: #fbfcfd; }
@@ -211,6 +251,9 @@
     <section class="page" id="page-in">
       <div id="inCats"></div>
     </section>
+
+    <!-- 部屋（内部工事の中） -->
+    <section class="page" id="page-room"><div id="roomWrap"></div></section>
 
     <!-- 外部工事 -->
     <section class="page" id="page-out">
@@ -452,128 +495,178 @@
   }
 
   // ---------- 工事タブ（内部・外部） ----------
-  function renderIn() {
-    const w = $('#inCats'); w.innerHTML = '';
-    const h = (t) => { const d = document.createElement('div'); d.className = 'sec-h'; d.textContent = t; w.appendChild(d); };
-    h('家全体（設備・電気）');
-    wholeGroups().forEach(({ g, scope }) => w.appendChild(renderGroup(scope, g.name, g.icon, g.note, [{ items: g.items, exclusive: g.exclusive, full: g.full, fullKeeps: g.fullKeeps }], null)));
-    h('部屋ごと（言われた部屋を開いてタップ）');
-    draft.rooms.forEach((room) => { const rt = rtById(room.type); if (rt) w.appendChild(renderGroup(room.id, roomLabel(room), rt.icon, rt.note, rt.parts, room)); });
-    // 部屋を足す
-    const add = document.createElement('div'); add.className = 'addroom';
-    add.innerHTML = `<div class="hint" style="margin-bottom:8px">＋ 部屋を足す（2つ目の洋室・2階トイレなど）</div><div class="tchips">${RT().map((rt) => `<button type="button" data-t="${esc(rt.id)}">${rt.icon || ''} ${esc(rt.name)}</button>`).join('')}</div>`;
-    add.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
-      const rt = rtById(b.dataset.t), n = draft.rooms.filter((r) => r.type === rt.id).length + 1;
-      const room = newRoom(rt, draft.roomSeq++, n);
-      // 同じ種類の部屋の後ろに入れる
-      let at = -1; draft.rooms.forEach((r, i) => { if (r.type === rt.id) at = i; });
-      if (at < 0) draft.rooms.push(room); else draft.rooms.splice(at + 1, 0, room);
-      draft.open[room.id] = true; saveDraft(); renderIn(); toast(room.name + ' を追加しました');
-      const el = document.querySelector(`[data-scope="${room.id}"]`); if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center' });
-    }));
-    w.appendChild(add);
-  }
-  function renderOut() {
-    const w = $('#outCats'); w.innerHTML = '';
-    outGroups().forEach(({ g, scope }) => w.appendChild(renderGroup(scope, g.name, g.icon, g.note, [{ items: g.items, exclusive: g.exclusive }], null)));
+  let currentRoom = null; // 開いている部屋の id
+  function scopeStat(scope, itemIds) {
+    let n = 0, amt = 0;
+    itemIds.forEach((id) => { const it = P.items[id], l = draft.lines[scope + '|' + id]; if (it && l && l.on) { n++; amt += (Number(l.qty) || 0) * unitPrice(it, l); } });
+    draft.custom.filter((x) => x.scope === scope).forEach((x) => { n++; amt += (Number(x.qty) || 0) * (Number(x.price) || 0); });
+    return { n, amt };
   }
   function removeRoom(id) {
     draft.rooms = draft.rooms.filter((r) => r.id !== id);
     Object.keys(draft.lines).forEach((k) => { if (k.startsWith(id + '|')) delete draft.lines[k]; });
     draft.custom = draft.custom.filter((x) => x.scope !== id);
   }
-  // parts: [{ name?, items, exclusive?, full?, fullKeeps? }]  room があれば部屋（帖数・名前の設定つき）
-  function renderGroup(scope, title, icon, note, parts, room) {
-    const itemIds = parts.reduce((a, pt) => a.concat(pt.items), []);
-    const cat = document.createElement('div');
-    cat.className = 'cat' + (draft.open[scope] ? ' open' : ''); cat.dataset.scope = scope;
-    cat.innerHTML = `<button class="cat-head" type="button"><span class="gi">${icon || ''}</span><span class="nm">${esc(title)}</span><span class="cnt"></span><span class="chev">▾</span></button><div class="cat-body">${note ? `<div class="cat-note hint" style="padding-bottom:8px">${esc(note)}</div>` : ''}</div>`;
-    cat.querySelector('.cat-head').addEventListener('click', () => { draft.open[scope] = !draft.open[scope]; cat.classList.toggle('open'); saveDraft(); });
-    const body = cat.querySelector('.cat-body');
-    const updCnt = () => {
-      let n = 0, amt = 0;
-      itemIds.forEach((id) => { const it = P.items[id], l = draft.lines[scope + '|' + id]; if (it && l && l.on) { n++; amt += (Number(l.qty) || 0) * unitPrice(it, l); } });
-      draft.custom.filter((x) => x.scope === scope).forEach((x) => { n++; amt += (Number(x.qty) || 0) * (Number(x.price) || 0); });
-      const c = cat.querySelector('.cnt'); c.textContent = n ? `${n}件 ${yen(amt)}` : ''; c.style.display = n ? '' : 'none';
-    };
-    if (room) {
-      const rt = rtById(room.type), first = draft.rooms.find((r) => r.type === room.type) === room;
-      const set = document.createElement('div'); set.className = 'room-set';
-      set.innerHTML = `${rt.size ? `<div class="lbl">広さ（帖）※床・クロスの数量に使います</div><div class="tchips">${TATAMI.map((t) => `<button type="button" data-v="${t}" class="${Number(room.tatami) === t ? 'on' : ''}">${t}</button>`).join('')}</div>` : ''}
-        <div class="rn"><input class="rname" value="${esc(room.name)}" aria-label="部屋の名前">${first ? '' : '<button type="button" class="del">この部屋を削除</button>'}</div>`;
-      set.querySelectorAll('.tchips button').forEach((b) => b.addEventListener('click', () => { room.tatami = Number(b.dataset.v); refreshDefaultQty(room); saveDraft(); renderIn(); refreshTotals(); }));
-      set.querySelector('.rname').addEventListener('input', (e) => { room.name = e.target.value; cat.querySelector('.cat-head .nm').textContent = roomLabel(room); saveDraft(); });
-      const del = set.querySelector('.del');
-      if (del) del.addEventListener('click', () => {
-        const used = Object.keys(draft.lines).some((k) => k.startsWith(room.id + '|') && draft.lines[k].on);
-        if (used && !confirm(`「${room.name}」には工事が入力されています。削除しますか？`)) return;
-        removeRoom(room.id); saveDraft(); renderIn(); refreshTotals();
-      });
-      body.appendChild(set);
-    }
+  // 【フル】があるグループは「【フル】」と「個別に選ぶ（たたんである）」に分ける
+  const wholeParts = (g) => g.full ? [{ items: [g.full], big: true }, { name: '個別に選ぶ', fold: true, items: g.items.filter((i) => i !== g.full) }] : [{ items: g.items, exclusive: g.exclusive }];
+
+  // 部位ごとにボタンを並べる。タップでON/OFF。ONにしたものだけ、下に数量の行が出る
+  // parts: [{ name?, items, exclusive?, fold?, big? }]  opts: { full, fullKeeps }
+  function partsEl(scope, parts, room, opts, onChange) {
+    opts = opts || {}; const keeps = opts.fullKeeps || [];
+    const wrap = document.createElement('div');
+    const reg = {};
+    const offOthers = (ids, keep) => ids.forEach((o) => { if (!keep(o) && reg[o]) reg[o].off(); });
     parts.forEach((pt) => {
-      if (pt.name) { const ph = document.createElement('div'); ph.className = 'part-h'; ph.textContent = pt.name + (pt.exclusive ? '（どれか1つ）' : ''); body.appendChild(ph); }
-      const itemEls = {}, keeps = pt.fullKeeps || [];
-      const offOthers = (keep) => Object.keys(itemEls).forEach((o) => { if (!keep(o)) itemEls[o].off(); });
-      pt.items.forEach((id) => {
-        const it = P.items[id]; if (!it) return;
-        const el = renderItem(scope, id, it, room, updCnt, () => {
-          // どれか1つだけ選ぶ部位
-          if (pt.exclusive) offOthers((o) => o === id);
-          // 【フル】を選んだら個別項目を外す／個別を選んだら【フル】を外す（オプションは両立）
-          if (pt.full) { if (id === pt.full) offOthers((o) => o === id || keeps.includes(o)); else if (!keeps.includes(id) && itemEls[pt.full]) itemEls[pt.full].off(); }
+      const ids = pt.items.filter((id) => P.items[id]); if (!ids.length) return;
+      // ボタンの名前は（　）の中を省いて短く。省くと同じ名前になるときは元の名前
+      const stripped = ids.map((id) => P.items[id].name.replace(/（.*?）/g, '').trim());
+      const foldKey = scope + '#' + (pt.name || '');
+      const anyOn = ids.some((id) => { const l = draft.lines[scope + '|' + id]; return l && l.on; });
+      const sec = document.createElement('div');
+      sec.className = 'part' + (pt.fold ? ' foldable' : '') + (pt.fold && !anyOn && !draft.open[foldKey] ? ' folded' : '');
+      sec.innerHTML = (pt.name ? `<div class="part-h">${esc(pt.name)}${pt.exclusive ? '<small>どれか1つ</small>' : ''}${pt.fold ? '<span class="chev">▾</span>' : ''}</div>` : '') + '<div class="part-b"><div class="chipsx"></div><div class="sels"></div></div>';
+      if (pt.fold) sec.querySelector('.part-h').addEventListener('click', () => { sec.classList.toggle('folded'); draft.open[foldKey] = !sec.classList.contains('folded'); saveDraft(); });
+      const chips = sec.querySelector('.chipsx'), sels = sec.querySelector('.sels');
+      ids.forEach((id, i) => {
+        const it = P.items[id], l = getLine(scope + '|' + id, it, room);
+        const label = stripped[i] && stripped.filter((x) => x === stripped[i]).length === 1 ? stripped[i] : it.name;
+        const isArea = room && AREA_KEYS.includes(it.qtyFrom), counted = it.unit !== '一式';
+        const chip = document.createElement('button'); chip.type = 'button'; chip.className = 'chipx' + (pt.big ? ' big' : '');
+        chip.innerHTML = `<span class="cn">${esc(label)}</span><span class="cp"></span>`;
+        const sel = document.createElement('div'); sel.className = 'sel';
+        const upd = () => {
+          const up = unitPrice(it, l), qty = Number(l.qty) || 0;
+          chip.querySelector('.cp').textContent = yen(up) + (counted ? '/' + it.unit : '');
+          const amt = sel.querySelector('.amt'); if (amt) amt.textContent = yen(up * qty);
+          const cl = sel.querySelector('.costline');
+          if (cl && costMode) { const c = itemCost(it, id, l); const cn = costs && costs.items[id] && costs.items[id].note; cl.textContent = c == null ? '原価 未設定' : `原価 ${yen(c)}${counted ? '/' + it.unit : ''}　粗利 ${fmtPct(marginPct(up, c))}%` + (cn ? `（${cn}）` : ''); }
+        };
+        const changed = () => { upd(); saveDraft(); if (onChange) onChange(); refreshTotals(); };
+        const build = () => {
+          chip.classList.toggle('on', l.on);
+          sel.style.display = l.on ? '' : 'none';
+          if (!l.on) { sel.innerHTML = ''; upd(); return; }
+          const gradeSel = it.grades ? `<span class="seg grade">${it.grades.map((g) => `<button type="button" data-v="${esc(g.name)}" class="${g.name === l.grade ? 'on' : ''}">${esc(g.name)}<small>${yen(g.price)}</small></button>`).join('')}</span>` : '';
+          sel.innerHTML = `<div class="sl1"><span>${esc(it.name)}</span><span class="amt"></span></div>${gradeSel}
+            ${counted ? `<div class="sl2"><span class="qty"><button type="button" class="m">−</button><input type="number" inputmode="decimal" min="0" step="any" value="${fmtQty(Number(l.qty) || 0)}"><button type="button" class="p">＋</button></span><span class="unit">${esc(it.unit)}</span></div>` : ''}
+            ${isArea ? `<div class="hint area">${l.touched ? '' : esc(room.tatami + '帖からの目安です（直せます）')}</div>` : ''}
+            ${it.note ? `<div class="hint">${esc(it.note)}</div>` : ''}<small class="costline"></small>`;
+          const qtyIn = sel.querySelector('.qty input');
+          const touch = () => { l.touched = true; const ar = sel.querySelector('.area'); if (ar) ar.textContent = ''; };
+          if (qtyIn) {
+            sel.querySelector('.m').addEventListener('click', () => { l.qty = Math.max(0, (Number(l.qty) || 0) - 1); touch(); qtyIn.value = fmtQty(l.qty); changed(); });
+            sel.querySelector('.p').addEventListener('click', () => { l.qty = (Number(l.qty) || 0) + 1; touch(); qtyIn.value = fmtQty(l.qty); changed(); });
+            qtyIn.addEventListener('input', () => { l.qty = qtyIn.value === '' ? 0 : Number(qtyIn.value); touch(); changed(); });
+          }
+          sel.querySelectorAll('.grade button').forEach((gb) => gb.addEventListener('click', () => { l.grade = gb.dataset.v; build(); changed(); }));
+          upd();
+        };
+        reg[id] = { off: () => { if (l.on) { l.on = false; build(); } } };
+        chip.addEventListener('click', () => {
+          l.on = !l.on;
+          if (l.on) {
+            // どれか1つだけ選ぶ部位
+            if (pt.exclusive) offOthers(ids, (o) => o === id);
+            // 【フル】を選んだら個別項目を外す／個別を選んだら【フル】を外す（オプションは両立）
+            if (opts.full) { if (id === opts.full) offOthers(Object.keys(reg), (o) => o === id || keeps.includes(o)); else if (!keeps.includes(id) && reg[opts.full]) reg[opts.full].off(); }
+          }
+          build(); changed();
         });
-        itemEls[id] = el; body.appendChild(el.el);
+        build();
+        chips.appendChild(chip); sels.appendChild(sel);
       });
+      wrap.appendChild(sec);
     });
-    draft.custom.filter((x) => x.scope === scope).forEach((x) => body.appendChild(renderCustom(x, updCnt, () => rerenderScope(scope))));
+    return wrap;
+  }
+  // グループ1つ分のカード（家全体の設備・電気、外部工事）
+  function groupCard(scope, title, icon, note, parts, room, opts) {
+    const itemIds = parts.reduce((a, pt) => a.concat(pt.items), []);
+    const card = document.createElement('div'); card.className = 'gcard'; card.dataset.scope = scope;
+    card.innerHTML = `${title ? `<div class="gcard-h"><span class="gi">${icon || ''}</span><span class="nm">${esc(title)}</span><span class="cnt"></span></div>` : ''}${note ? `<div class="cat-note hint">${esc(note)}</div>` : ''}`;
+    const updCnt = () => { const c = card.querySelector('.cnt'); if (!c) return; const st = scopeStat(scope, itemIds); c.textContent = st.n ? `${st.n}件 ${yen(st.amt)}` : ''; c.style.display = st.n ? '' : 'none'; };
+    card.appendChild(partsEl(scope, parts, room, opts, updCnt));
+    draft.custom.filter((x) => x.scope === scope).forEach((x) => card.appendChild(renderCustom(x, updCnt, () => rerenderScope(scope))));
     const add = document.createElement('div'); add.className = 'add-row';
     add.innerHTML = '<button class="btn ghost sm" type="button">＋ 表にない工事を追加</button>';
     add.querySelector('button').addEventListener('click', () => {
       draft.custom.push({ id: 'c' + Date.now(), scope, name: '', unit: '一式', price: 0, qty: 1, memo: '' });
-      draft.open[scope] = true; saveDraft(); rerenderScope(scope); refreshTotals();
+      saveDraft(); rerenderScope(scope); refreshTotals();
     });
-    body.appendChild(add);
+    card.appendChild(add);
     updCnt();
-    return cat;
+    return card;
+  }
+  function renderIn() {
+    const w = $('#inCats'); w.innerHTML = '';
+    const h = (t) => { const d = document.createElement('div'); d.className = 'sec-h'; d.textContent = t; w.appendChild(d); };
+    h('① 部屋をタップ');
+    const grid = document.createElement('div'); grid.className = 'tiles';
+    draft.rooms.forEach((room) => {
+      const rt = rtById(room.type); if (!rt) return;
+      const st = scopeStat(room.id, rtItems(rt));
+      const t = document.createElement('button'); t.type = 'button'; t.className = 'tile' + (st.n ? ' on' : '');
+      t.innerHTML = `<span class="ti">${rt.icon || ''}</span><span class="tn">${esc(room.name)}</span><span class="ts">${st.n ? yen(st.amt) : ''}</span>`;
+      t.addEventListener('click', () => openRoom(room.id));
+      grid.appendChild(t);
+    });
+    const at = document.createElement('button'); at.type = 'button'; at.className = 'tile add';
+    at.innerHTML = '<span class="ti">＋</span><span class="tn">部屋を足す</span><span class="ts"></span>';
+    grid.appendChild(at); w.appendChild(grid);
+    const add = document.createElement('div'); add.className = 'addroom'; add.style.display = 'none';
+    add.innerHTML = `<div class="hint" style="margin-bottom:8px">足す部屋を選んでください（2つ目の洋室・2階トイレなど）</div><div class="tchips">${RT().map((rt) => `<button type="button" data-t="${esc(rt.id)}">${rt.icon || ''} ${esc(rt.name)}</button>`).join('')}</div>`;
+    at.addEventListener('click', () => { add.style.display = add.style.display === 'none' ? '' : 'none'; });
+    add.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+      const rt = rtById(b.dataset.t), n = draft.rooms.filter((r) => r.type === rt.id).length + 1;
+      const room = newRoom(rt, draft.roomSeq++, n);
+      // 同じ種類の部屋の後ろに入れる
+      let pos = -1; draft.rooms.forEach((r, i) => { if (r.type === rt.id) pos = i; });
+      if (pos < 0) draft.rooms.push(room); else draft.rooms.splice(pos + 1, 0, room);
+      saveDraft(); openRoom(room.id); toast(room.name + ' を追加しました');
+    }));
+    w.appendChild(add);
+    h('② 家全体（設備・電気）');
+    wholeGroups().forEach(({ g, scope }) => w.appendChild(groupCard(scope, g.name, g.icon, g.note, wholeParts(g), null, { full: g.full, fullKeeps: g.fullKeeps })));
+    if (currentRoom) renderRoomPage();
+  }
+  function renderOut() {
+    const w = $('#outCats'); w.innerHTML = '';
+    outGroups().forEach(({ g, scope }) => w.appendChild(groupCard(scope, g.name, g.icon, g.note, [{ items: g.items, exclusive: g.exclusive }], null, null)));
+  }
+  // ---------- 部屋の画面 ----------
+  function openRoom(id) { currentRoom = id; renderRoomPage(); showPage('room'); }
+  function closeRoom() { currentRoom = null; renderIn(); showPage('in'); }
+  function renderRoomPage() {
+    const w = $('#roomWrap'); w.innerHTML = '';
+    const room = draft.rooms.find((r) => r.id === currentRoom); if (!room) return;
+    const rt = rtById(room.type), first = draft.rooms.find((r) => r.type === room.type) === room;
+    const top = document.createElement('div');
+    top.innerHTML = `<button class="back" type="button">‹ 部屋の一覧へ</button>
+      <div class="room-title"><span class="gi">${rt.icon || ''}</span><span class="rt-name">${esc(room.name)}</span></div>`;
+    top.querySelector('.back').addEventListener('click', closeRoom);
+    w.appendChild(top);
+    if (rt.size) {
+      const set = document.createElement('div'); set.className = 'gcard'; set.style.padding = '12px 16px';
+      set.innerHTML = `<div class="lbl hint" style="margin-bottom:6px">広さ（帖）をタップ　※床・クロスの数量に使います</div><div class="tchips">${TATAMI.map((t) => `<button type="button" data-v="${t}" class="${Number(room.tatami) === t ? 'on' : ''}">${t}</button>`).join('')}</div>`;
+      set.querySelectorAll('.tchips button').forEach((b) => b.addEventListener('click', () => { room.tatami = Number(b.dataset.v); refreshDefaultQty(room); saveDraft(); renderRoomPage(); refreshTotals(); }));
+      w.appendChild(set);
+    }
+    w.appendChild(groupCard(room.id, '', '', rt.note, rt.parts, room, null));
+    const foot = document.createElement('div');
+    foot.innerHTML = `<button class="btn" type="button" style="margin:4px 0 14px">✓ この部屋はOK（一覧へ戻る）</button>
+      <div class="gcard" style="padding:12px 16px"><div class="hint" style="margin-bottom:6px">部屋の名前（例：2階洋室）</div><div class="rn" style="display:flex;gap:8px;align-items:center"><input class="rname" value="${esc(room.name)}" style="flex:1">${first ? '' : '<button type="button" class="del">この部屋を削除</button>'}</div></div>`;
+    foot.querySelector('.btn').addEventListener('click', closeRoom);
+    foot.querySelector('.rname').addEventListener('input', (e) => { room.name = e.target.value; w.querySelector('.rt-name').textContent = room.name; saveDraft(); });
+    const del = foot.querySelector('.del');
+    if (del) del.addEventListener('click', () => {
+      const used = Object.keys(draft.lines).some((k) => k.startsWith(room.id + '|') && draft.lines[k].on);
+      if (used && !confirm(`「${room.name}」には工事が入力されています。削除しますか？`)) return;
+      removeRoom(room.id); saveDraft(); refreshTotals(); closeRoom();
+    });
+    w.appendChild(foot);
   }
   function rerenderScope(scope) { if (scope.startsWith('ext_')) renderOut(); else renderIn(); }
-
-  function renderItem(scope, id, it, room, updCnt, onTurnOn) {
-    const key = scope + '|' + id;
-    const l = getLine(key, it, room);
-    const el = document.createElement('div');
-    el.className = 'item' + (l.on ? ' on' : '');
-    const gradeSel = it.grades ? `<span class="seg grade">${it.grades.map((g) => `<button type="button" data-v="${esc(g.name)}" class="${g.name === l.grade ? 'on' : ''}">${esc(g.name)}<small>${yen(g.price)}</small></button>`).join('')}</span>` : '';
-    const isArea = room && AREA_KEYS.includes(it.qtyFrom);
-    el.innerHTML = `
-      <div class="item-main"><span class="chk">✓</span><span class="nm">${esc(it.name)}<small class="costline"></small></span><span class="pr"></span></div>
-      <div class="item-detail">
-        ${gradeSel}
-        <div class="ctl">
-          <span class="qty"><button type="button" class="m">−</button><input type="number" inputmode="decimal" min="0" step="any" value="${fmtQty(Number(l.qty) || 0)}"><button type="button" class="p">＋</button></span>
-          <span class="unit">${esc(it.unit)}</span><span class="line"></span></div>
-        ${isArea ? '<div class="hint area"></div>' : ''}
-        ${it.note ? `<div class="hint">${esc(it.note)}</div>` : ''}
-        <input class="memo" placeholder="メモ（場所・商品名など）" value="${esc(l.memo)}">
-      </div>`;
-    const pr = el.querySelector('.pr'), line = el.querySelector('.line'), qtyIn = el.querySelector('.qty input'), cl = el.querySelector('.costline'), area = el.querySelector('.area');
-    const upd = () => {
-      const up = unitPrice(it, l), qty = Number(l.qty) || 0; pr.textContent = l.on ? yen(up * qty) : yen(up) + '/' + it.unit; line.textContent = yen(up * qty);
-      if (area) area.textContent = l.touched ? '' : `${room.tatami}帖からの目安です（数量は直せます）`;
-      if (costMode) { const c = itemCost(it, id, l); const cn = costs && costs.items[id] && costs.items[id].note; cl.textContent = c == null ? '原価 未設定' : `原価 ${yen(c)}/${it.unit}　粗利 ${fmtPct(marginPct(up, c))}%` + (cn ? `（${cn}）` : ''); }
-    };
-    const changed = () => { upd(); saveDraft(); updCnt(); refreshTotals(); };
-    const off = () => { if (l.on) { l.on = false; el.classList.remove('on'); upd(); } };
-    el.querySelector('.item-main').addEventListener('click', () => { l.on = !l.on; el.classList.toggle('on', l.on); if (l.on && onTurnOn) onTurnOn(); changed(); });
-    el.querySelector('.m').addEventListener('click', () => { l.qty = Math.max(0, (Number(l.qty) || 0) - 1); l.touched = true; qtyIn.value = fmtQty(l.qty); changed(); });
-    el.querySelector('.p').addEventListener('click', () => { l.qty = (Number(l.qty) || 0) + 1; l.touched = true; qtyIn.value = fmtQty(l.qty); changed(); });
-    qtyIn.addEventListener('input', () => { l.qty = qtyIn.value === '' ? 0 : Number(qtyIn.value); l.touched = true; changed(); });
-    el.querySelectorAll('.grade button').forEach((b) => b.addEventListener('click', () => { l.grade = b.dataset.v; el.querySelectorAll('.grade button').forEach((x) => x.classList.toggle('on', x === b)); changed(); }));
-    el.querySelector('.memo').addEventListener('input', (e) => { l.memo = e.target.value; saveDraft(); });
-    upd();
-    return { el, off };
-  }
 
   function renderCustom(x, updCnt, rerender) {
     const el = document.createElement('div');
@@ -850,7 +943,8 @@
   // ---------- 画面切替など ----------
   function showPage(name) {
     document.querySelectorAll('.page').forEach((p) => p.classList.toggle('active', p.id === 'page-' + name));
-    document.querySelectorAll('nav.bottom button').forEach((b) => b.classList.toggle('active', b.dataset.page === name));
+    document.querySelectorAll('nav.bottom button').forEach((b) => b.classList.toggle('active', b.dataset.page === (name === 'room' ? 'in' : name)));
+    if (name !== 'room' && currentRoom) { currentRoom = null; renderIn(); }
     if (name === 'est') refreshTotals();
     window.scrollTo(0, 0);
   }
