@@ -339,7 +339,8 @@
       <button class="bigbtn" id="goIn" type="button"><span class="bi">🛠</span><span class="bt">内部工事<small>部屋ごと・設備・電気</small></span><span class="ba" id="homeIn"></span><span class="bc">›</span></button>
       <button class="bigbtn" id="goOut" type="button"><span class="bi">🏘️</span><span class="bt">外部工事<small>外壁塗装・外構</small></span><span class="ba" id="homeOut"></span><span class="bc">›</span></button>
       <div class="hint" style="text-align:center;margin-top:6px">カチタスに言われた工事を、タップしていくだけで見積ができます。</div>
-      <div class="hint" style="text-align:center;margin-top:18px"><span id="appVer" data-build="1112-0213"></span> <a href="#" id="btnReload">最新版に更新</a></div>
+      <a class="btn sec" id="guideLink" href="guide.html" style="margin-top:14px;text-decoration:none">📖 使い方ガイドを見る</a>
+      <div class="hint" style="text-align:center;margin-top:18px"><span id="appVer" data-build="1112-1133"></span> <a href="#" id="btnReload">最新版に更新</a></div>
     </section>
 
     <!-- 内部工事 -->
@@ -456,7 +457,7 @@
 
 <div id="sheet"></div>
 
-<script src="prices.js?v=1112-0213"></script>
+<script src="prices.js?v=1112-1133"></script>
 <script>
 (function () {
   'use strict';
@@ -1260,6 +1261,8 @@
     settings.companyInfo = $('#s_companyInfo').value;
     lsSet(LS.settings, { company: settings.company, companyInfo: settings.companyInfo }); refreshTotals(); toast('設定を保存しました');
   });
+  // 1ファイル版（ファイルを直接開いたとき）は、ガイドのページが無いのでリンクを隠す
+  if (location.protocol === 'file:') $('#guideLink').style.display = 'none';
   // 版の表示と「最新版に更新」（携帯に古い画面が残ったとき用）
   (function () {
     const b = $('#appVer').dataset.build; if (b && b.indexOf('__') !== 0) $('#appVer').textContent = '版 ' + b + '　';

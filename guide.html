@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>使い方ガイド｜カチタス見積もりアプリ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<style>
+  :root {
+    --bg: #f3f3f0; --card: #ffffff; --text: #1d2026; --muted: #5e636c; --line: #d2d4ce;
+    --accent: #f26f21; --ok: #5fae3a; --ok-dark: #4a9129; --ok-bg: #eef6e8; --tip: #fff4ec; --tip-line: #f6c9ad; --danger: #d9381e;
+    --font-body: "BIZ UDPGothic", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+    --font-display: "Zen Kaku Gothic New", "BIZ UDPGothic", "Hiragino Sans", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.7; -webkit-text-size-adjust: 100%; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 3px solid var(--accent); padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top)); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  header h1 { margin: 0; font-family: var(--font-display); font-size: 17px; color: var(--ok-dark); }
+  header a { flex: none; background: var(--accent); color: #fff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 9px 14px; border-radius: 8px; }
+  main { max-width: 560px; margin: 0 auto; padding: 16px 16px 48px; }
+  .lead { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 18px; }
+  .lead b { font-family: var(--font-display); font-size: 20px; display: block; line-height: 1.4; margin-bottom: 6px; }
+  .flow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; font-size: 14px; font-weight: 700; }
+  .flow span { background: var(--ok-bg); color: var(--ok-dark); border-radius: 999px; padding: 4px 12px; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 18px; }
+  .step h2 { margin: 0 0 8px; font-family: var(--font-display); font-size: 20px; line-height: 1.35; display: flex; align-items: center; gap: 10px; }
+  .step h2 i { flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; font-style: normal; font-size: 18px; display: grid; place-items: center; }
+  .step p { margin: 0 0 10px; }
+  .step ul { margin: 0 0 10px; padding-left: 1.2em; }
+  .step li { margin-bottom: 4px; }
+  .shot { display: block; width: 100%; max-width: 300px; margin: 12px auto 4px; border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 6px 18px -8px rgba(29,32,38,.35); }
+  .cap { text-align: center; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .tip { background: var(--tip); border: 1px solid var(--tip-line); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; margin-top: 8px; }
+  .tip b { color: var(--accent); }
+  kbd { font-family: inherit; font-weight: 700; background: var(--ok-bg); color: var(--ok-dark); border-radius: 6px; padding: 1px 8px; white-space: nowrap; }
+  .qa { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 6px 16px; }
+  .qa h2 { font-family: var(--font-display); font-size: 20px; margin: 12px 0 4px; }
+  .qa dt { font-weight: 700; margin-top: 12px; }
+  .qa dt::before { content: "Q. "; color: var(--accent); }
+  .qa dd { margin: 2px 0 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
+  .qa dd:last-child { border-bottom: 0; }
+  .red { color: var(--danger); font-weight: 700; }
+  footer { text-align: center; margin-top: 22px; }
+  footer a { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; font-weight: 700; padding: 14px 28px; border-radius: 10px; font-size: 17px; }
+</style>
+</head>
+<body>
+<header><h1>使い方ガイド</h1><a href="./index.html">アプリを開く</a></header>
+<main>
+  <div class="lead">
+    <b>言われた工事を、タップしていくだけ。</b>
+    カチタスの現地調査で言われたリフォーム内容を選ぶと、見積の金額が自動で出ます。
+    <div class="flow"><span>① 共通</span><span>② 部屋</span><span>③ 外部工事</span><span>④ 見積</span></div>
+  </div>
+
+  <section class="step">
+    <h2><i>1</i>アプリを開いて「内部工事」を押す</h2>
+    <p>物件名は、あとから入れても大丈夫です。</p>
+    <img class="shot" src="guide/01-top.jpg" alt="トップ画面" loading="lazy">
+    <div class="cap">トップ画面</div>
+  </section>
+
+  <section class="step">
+    <h2><i>2</i>まず「共通」を押す</h2>
+    <p>家全体で決まるもの（クロス・床・建具・設備・電気）は、ここでまとめて選びます。</p>
+    <img class="shot" src="guide/02-tiles.jpg" alt="内部工事の画面" loading="lazy">
+    <div class="cap">一番上のオレンジの枠が「共通」</div>
+
+    <p><b>① 間取りをタップ</b><br>居室の数などを <kbd>＋</kbd> で入れます。ざっくりの延べ床と、クロスの量が自動で出ます。</p>
+    <img class="shot" src="guide/03-plan.jpg" alt="間取りの入力" loading="lazy">
+
+    <p><b>② 家全体の内装を選ぶ</b><br>クロス、床（メイン床材）、建具、巾木、廻り縁、窓枠、レベル工事。押すと緑になります。もう一度押すと外れます。</p>
+    <img class="shot" src="guide/04-common.jpg" alt="家全体の内装" loading="lazy">
+
+    <p><b>③ 設備・電気を選ぶ</b><br>まとめて頼むときは <kbd>【フル】</kbd> を押すだけ。細かく選ぶときは「個別に選ぶ」を開きます。</p>
+    <img class="shot" src="guide/05-full.jpg" alt="設備・電気" loading="lazy">
+    <div class="tip"><b>ポイント</b>　床（メイン床材）は、リビング・洋室・キッチンの床です。トイレ・洗面室・階段の床は、それぞれの部屋で選びます。</div>
+  </section>
+
+  <section class="step">
+    <h2><i>3</i>部屋を押して、工事を選ぶ</h2>
+    <p>言われた部屋のタイルを押すと、その部屋で選べる工事が出ます。押すだけで選べます。</p>
+    <img class="shot" src="guide/06-room.jpg" alt="キッチンの画面" loading="lazy">
+    <div class="cap">キッチンの例：交換（位置が変わる）</div>
+    <ul>
+      <li>台数や枚数は <kbd>−</kbd> <kbd>＋</kbd> で変えます。</li>
+      <li>終わったら <kbd>✓ OK（一覧へ戻る）</kbd>。</li>
+      <li>2階トイレなどは、一覧の「＋ 部屋を足す」で増やせます。</li>
+    </ul>
+    <img class="shot" src="guide/07-tiles-on.jpg" alt="選んだ部屋が緑になった一覧" loading="lazy">
+    <div class="cap">選んだ部屋は緑になり、選んだ工事の名前が出ます</div>
+  </section>
+
+  <section class="step">
+    <h2><i>4</i>外部工事を選ぶ</h2>
+    <p>下のタブの「外部工事」を押して、外壁塗装（どれか1つ）と外構を選びます。</p>
+    <img class="shot" src="guide/08-out.jpg" alt="外部工事の画面" loading="lazy">
+  </section>
+
+  <section class="step">
+    <h2><i>5</i>「見積を見る」を押す</h2>
+    <p>選んだ工事の金額が、工種ごと（設備・電気・大工・内装…）に自動で入ります。一番下に小計（税抜）と合計（税込）が出ます。</p>
+    <img class="shot" src="guide/10-total.jpg" alt="見積の画面" loading="lazy">
+    <ul>
+      <li>ゴミ出し・ゴミ処分費・諸経費は、この画面で金額を入れます。</li>
+      <li><kbd>印刷 / PDF</kbd> で見積書にできます。</li>
+      <li><kbd>保存する</kbd> で、この携帯に残せます。</li>
+      <li>「選んだ工事の一覧を見る」で、内容を確認できます。</li>
+    </ul>
+  </section>
+
+  <div class="qa">
+    <h2>困ったとき</h2>
+    <dl>
+      <dt>間違えて押した</dt>
+      <dd>もう一度押すと外れます。部屋の画面の下にある「この部屋の選択をすべて外す」でも外せます。</dd>
+      <dt>赤い字で「単価未設定」と出る</dt>
+      <dd>その工事はまだ金額が決まっていません。<span class="red">合計には入りません。</span>見積を出す前に、上司に確認してください。</dd>
+      <dt>次の物件を始めたい</dt>
+      <dd>「見積」タブの <kbd>クリア（新規）</kbd> を押します。残したい見積は、先に <kbd>保存する</kbd> を押してください。</dd>
+      <dt>入力した内容は消えない？</dt>
+      <dd>入力は、その携帯に自動で残ります。ほかの人の携帯には出ません。</dd>
+      <dt>画面が古い気がする</dt>
+      <dd>トップ画面の一番下にある「最新版に更新」を押してください。</dd>
+      <dt>右上の「原価」ボタンは？</dt>
+      <dd>管理者用です。合言葉を入れた人だけ、原価と粗利が見えます。ふだんは使いません。</dd>
+    </dl>
+  </div>
+
+  <footer><a href="./index.html">アプリを開く</a></footer>
+</main>
+</body>
+</html>
