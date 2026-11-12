@@ -41,6 +41,20 @@
   .qa dd { margin: 2px 0 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
   .qa dd:last-child { border-bottom: 0; }
   .red { color: var(--danger); font-weight: 700; }
+  .cost { background: var(--card); border: 3px solid var(--danger); border-radius: 14px; padding: 16px; margin-bottom: 18px; }
+  .cost .tag { display: inline-block; background: var(--danger); color: #fff; font-weight: 700; font-size: 13px; padding: 3px 12px; border-radius: 999px; margin-bottom: 8px; }
+  .cost h2 { margin: 0 0 8px; font-family: var(--font-display); font-size: 24px; line-height: 1.35; }
+  .cost h3 { margin: 16px 0 6px; font-family: var(--font-display); font-size: 17px; }
+  .cost ul { margin: 0 0 6px; padding-left: 1.2em; }
+  .cost li { margin-bottom: 4px; }
+  .cost .shot { max-width: 100%; border-radius: 10px; }
+  .ng { background: #fdeae5; border: 2px solid var(--danger); border-radius: 10px; padding: 12px 14px; margin-top: 8px; }
+  .ng b { display: block; color: var(--danger); font-size: 17px; margin-bottom: 4px; }
+  .ng li { font-weight: 700; }
+  .contact { background: var(--ok-bg); border: 2px solid var(--ok); border-radius: 14px; padding: 16px; margin-bottom: 18px; }
+  .contact h2 { margin: 0 0 6px; font-family: var(--font-display); font-size: 20px; }
+  .contact .who { display: inline-block; background: var(--ok); color: #fff; font-weight: 700; font-size: 18px; padding: 6px 18px; border-radius: 999px; margin: 6px 0; }
+  .contact ul { margin: 6px 0 0; padding-left: 1.2em; }
   footer { text-align: center; margin-top: 22px; }
   footer a { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; font-weight: 700; padding: 14px 28px; border-radius: 10px; font-size: 17px; }
 </style>
@@ -52,6 +66,7 @@
     <b>言われた工事を、タップしていくだけ。</b>
     カチタスの現地調査で言われたリフォーム内容を選ぶと、見積の金額が自動で出ます。
     <div class="flow"><span>① 共通</span><span>② 部屋</span><span>③ 外部工事</span><span>④ 見積</span></div>
+    <div class="tip" style="margin-top:12px"><b>先に読む</b>　右上の<b>「原価」ボタンは管理者用</b>です。カチタスの担当者やお客様の前では押しません（くわしくは下の赤い枠）。</div>
   </div>
 
   <section class="step">
@@ -110,21 +125,65 @@
     </ul>
   </section>
 
+  <section class="cost">
+    <span class="tag">管理者用</span>
+    <h2>右上の「原価」ボタンについて</h2>
+    <img class="shot" src="guide/11-cost-button.jpg" alt="右上の原価ボタン" loading="lazy">
+    <div class="cap">赤い枠のところが「原価」ボタン</div>
+    <p>会社の<b>原価（仕入れ値）と粗利</b>を見るためのボタンです。<b>合言葉を知っている管理者だけ</b>が使います。<br>新人の方は、ふだん押しません。押しても合言葉が無いと何も見えません。</p>
+
+    <div class="ng">
+      <b>⚠ 必ず守ること</b>
+      <ul>
+        <li>カチタスの担当者・お客様の前では押さない</li>
+        <li>「原価ON」のまま画面を見せない</li>
+        <li>見終わったら、もう一度押して「原価」に戻す</li>
+        <li>合言葉を人に教えない・書いて残さない</li>
+      </ul>
+    </div>
+
+    <h3>押すとどうなる？</h3>
+    <ul>
+      <li>合言葉を聞かれます。合っていると、ボタンがオレンジの「原価ON」になります。</li>
+      <li>工事のボタンの下に、<b>金額・原価・粗利率</b>が出ます。</li>
+      <li>「見積」タブに、<b>原価の合計・粗利額・粗利率</b>が出ます。</li>
+      <li>「設定」タブに、原価を入れる画面（<b>原価マスター</b>）が出ます。</li>
+    </ul>
+
+    <h3>原価マスターでできること</h3>
+    <ul>
+      <li>原価を入れると、決めてある粗利率になるお客様向けの金額が自動で入ります。</li>
+      <li>ここで変えた内容は、<b>その携帯だけ</b>に残ります。ほかの人の携帯は変わりません。</li>
+      <li>全員のアプリに反映したいときは、飯野さんへ連絡してください。</li>
+    </ul>
+  </section>
+
+  <section class="contact">
+    <h2>工事の内容を足したい・直したいとき</h2>
+    <div class="who">飯野さんへ</div>
+    <ul>
+      <li>選びたい工事がアプリに無い</li>
+      <li>赤い字で「単価未設定」と出る工事の金額を決めたい</li>
+      <li>金額・原価を変えたい</li>
+    </ul>
+    <p style="margin:8px 0 0">急ぐときは、その場では部屋や共通の画面の一番下にある「＋ 表にない工事を追加」で、工事名と金額を手で入れられます。</p>
+  </section>
+
   <div class="qa">
     <h2>困ったとき</h2>
     <dl>
       <dt>間違えて押した</dt>
       <dd>もう一度押すと外れます。部屋の画面の下にある「この部屋の選択をすべて外す」でも外せます。</dd>
       <dt>赤い字で「単価未設定」と出る</dt>
-      <dd>その工事はまだ金額が決まっていません。<span class="red">合計には入りません。</span>見積を出す前に、上司に確認してください。</dd>
+      <dd>その工事はまだ金額が決まっていません。<span class="red">合計には入りません。</span>見積を出す前に、飯野さんへ確認してください。</dd>
       <dt>次の物件を始めたい</dt>
       <dd>「見積」タブの <kbd>クリア（新規）</kbd> を押します。残したい見積は、先に <kbd>保存する</kbd> を押してください。</dd>
       <dt>入力した内容は消えない？</dt>
       <dd>入力は、その携帯に自動で残ります。ほかの人の携帯には出ません。</dd>
       <dt>画面が古い気がする</dt>
       <dd>トップ画面の一番下にある「最新版に更新」を押してください。</dd>
-      <dt>右上の「原価」ボタンは？</dt>
-      <dd>管理者用です。合言葉を入れた人だけ、原価と粗利が見えます。ふだんは使いません。</dd>
+      <dt>選びたい工事がアプリに無い</dt>
+      <dd>その場では「＋ 表にない工事を追加」で手入力できます。アプリに足してほしいときは、飯野さんへ。</dd>
     </dl>
   </div>
 
